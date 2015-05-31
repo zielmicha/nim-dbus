@@ -4,7 +4,7 @@
  * Copyright (C) 2002, 2003  Red Hat Inc.
  *
  * Licensed under the Academic Free License version 2.1
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -14,7 +14,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -40,14 +40,19 @@ DBUS_BEGIN_DECLS
  */
 
 /* documented in dbus-watch.c */
+struct DBusWatch;
 typedef struct DBusWatch DBusWatch;
 /* documented in dbus-timeout.c */
+struct DBusTimeout;
 typedef struct DBusTimeout DBusTimeout;
 /** Opaque type representing preallocated resources so a message can be sent without further memory allocation. */
+struct DBusPreallocatedSend;
 typedef struct DBusPreallocatedSend DBusPreallocatedSend;
 /** Opaque type representing a method call that has not yet received a reply. */
+struct DBusPendingCall;
 typedef struct DBusPendingCall DBusPendingCall;
 /** Opaque type representing a connection to a remote application and associated incoming/outgoing message queues. */
+struct DBusConnection;
 typedef struct DBusConnection DBusConnection;
 /** Set of functions that must be implemented to handle messages sent to a particular object path. */
 typedef struct DBusObjectPathVTable DBusObjectPathVTable;
@@ -139,7 +144,7 @@ typedef void        (* DBusWakeupMainFunction)     (void           *data);
  * ID is allowed to connect, if the client tried to auth as a UNIX
  * user ID. Normally on Windows this would never happen. Set with
  * dbus_connection_set_unix_user_function().
- */ 
+ */
 typedef dbus_bool_t (* DBusAllowUnixUserFunction)  (DBusConnection *connection,
                                                     unsigned long   uid,
                                                     void           *data);
@@ -149,7 +154,7 @@ typedef dbus_bool_t (* DBusAllowUnixUserFunction)  (DBusConnection *connection,
  * ID is allowed to connect, if the client tried to auth as a Windows
  * user ID. Normally on UNIX this would never happen. Set with
  * dbus_connection_set_windows_user_function().
- */ 
+ */
 typedef dbus_bool_t (* DBusAllowWindowsUserFunction)  (DBusConnection *connection,
                                                        const char     *user_sid,
                                                        void           *data);
@@ -275,7 +280,7 @@ void               dbus_connection_set_unix_user_function       (DBusConnection 
                                                                  DBusFreeFunction            free_data_function);
 DBUS_EXPORT
 dbus_bool_t        dbus_connection_get_windows_user             (DBusConnection             *connection,
-                                                                 char                      **windows_sid_p); 
+                                                                 char                      **windows_sid_p);
 DBUS_EXPORT
 void               dbus_connection_set_windows_user_function    (DBusConnection             *connection,
                                                                  DBusAllowWindowsUserFunction function,
@@ -317,7 +322,7 @@ void*       dbus_connection_get_data           (DBusConnection   *connection,
                                                 dbus_int32_t      slot);
 
 DBUS_EXPORT
-void        dbus_connection_set_change_sigpipe (dbus_bool_t       will_modify_sigpipe); 
+void        dbus_connection_set_change_sigpipe (dbus_bool_t       will_modify_sigpipe);
 
 DBUS_EXPORT
 void dbus_connection_set_max_message_size  (DBusConnection *connection,
@@ -385,7 +390,7 @@ struct DBusObjectPathVTable
 {
   DBusObjectPathUnregisterFunction   unregister_function; /**< Function to unregister this handler */
   DBusObjectPathMessageFunction      message_function; /**< Function to handle messages */
-  
+
   void (* dbus_internal_pad1) (void *); /**< Reserved for future expansion */
   void (* dbus_internal_pad2) (void *); /**< Reserved for future expansion */
   void (* dbus_internal_pad3) (void *); /**< Reserved for future expansion */

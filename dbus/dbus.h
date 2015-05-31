@@ -4,7 +4,7 @@
  * Copyright (C) 2002, 2003  Red Hat Inc.
  *
  * Licensed under the Academic Free License version 2.1
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -14,7 +14,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -31,7 +31,6 @@
 #include <dbus/dbus-bus.h>
 #include <dbus/dbus-connection.h>
 #include <dbus/dbus-errors.h>
-#include <dbus/dbus-macros.h>
 #include <dbus/dbus-message.h>
 #include <dbus/dbus-misc.h>
 #include <dbus/dbus-pending-call.h>
@@ -54,7 +53,7 @@
  * convenient when used with the GLib bindings, Python bindings, Qt
  * bindings, Mono bindings, and so forth.  This low-level API has a
  * lot of complexity useful only for bindings.
- * 
+ *
  * @{
  */
 
@@ -68,7 +67,7 @@
  *
  * Caveats aside, you might get started learning the low-level API by reading
  * about @ref DBusConnection and @ref DBusMessage.
- * 
+ *
  * There are several other places to look for D-Bus information, such
  * as the tutorial and the specification; those can be found at <a
  * href="http://www.freedesktop.org/wiki/Software/dbus">the D-Bus
@@ -82,7 +81,7 @@
  * etc. These higher-level libraries (often called "D-Bus bindings")
  * have features such as object systems and main loops that allow a
  * <em>much</em> more convenient API.
- * 
+ *
  * The low-level API also contains plenty of clutter to support
  * integration with arbitrary object systems, languages, main loops,
  * and so forth. These features add a lot of noise to the API that you

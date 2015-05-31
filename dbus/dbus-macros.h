@@ -4,7 +4,7 @@
  * Copyright (C) 2002  Red Hat Inc.
  *
  * Licensed under the Academic Free License version 2.1
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -14,7 +14,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -50,7 +50,7 @@
 #  endif /* !__cplusplus */
 #endif
 
-#if  __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
+#if  0
 #  define DBUS_DEPRECATED __attribute__ ((__deprecated__))
 #elif defined(_MSC_VER) && (_MSC_VER >= 1300)
 #  define DBUS_DEPRECATED __declspec(deprecated)
@@ -58,7 +58,7 @@
 #  define DBUS_DEPRECATED
 #endif
 
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8)
+#if 0
 #  define _DBUS_GNUC_EXTENSION __extension__
 #else
 #  define _DBUS_GNUC_EXTENSION
@@ -77,13 +77,13 @@
 #define _DBUS_GNUC_UNUSED
 #endif  /* !__GNUC__ */
 
-#if    __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96)
+#if   0
 #define DBUS_MALLOC     __attribute__((__malloc__))
 #else
 #define DBUS_MALLOC
 #endif
 
-#if     (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
+#if     0
 #define DBUS_ALLOC_SIZE(x) __attribute__((__alloc_size__(x)))
 #define DBUS_ALLOC_SIZE2(x,y) __attribute__((__alloc_size__(x,y)))
 #else

@@ -4,7 +4,7 @@
  * Copyright (C) 2002, 2003, 2005 Red Hat Inc.
  *
  * Licensed under the Academic Free License version 2.1
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -14,7 +14,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -32,7 +32,7 @@
 #include <dbus/dbus-arch-deps.h>
 #include <dbus/dbus-memory.h>
 #include <dbus/dbus-errors.h>
-#include <stdarg.h>
+//#include <stdarg.h>
 
 DBUS_BEGIN_DECLS
 
@@ -41,15 +41,16 @@ DBUS_BEGIN_DECLS
  * @{
  */
 
+struct DBusMessage;
 typedef struct DBusMessage DBusMessage;
-/** Opaque type representing a message iterator. Can be copied by value, and contains no allocated memory so never needs to be freed and can be allocated on the stack. */
+/** Opaque type representing a message iterator. Can be copied by value, and contains no allocated memory so never needs to be freed and can be allocated on the stack. */;
 typedef struct DBusMessageIter DBusMessageIter;
 
 /**
- * DBusMessageIter struct; contains no public fields. 
+ * DBusMessageIter struct; contains no public fields.
  */
 struct DBusMessageIter
-{ 
+{
   void *dummy1;         /**< Don't use this */
   void *dummy2;         /**< Don't use this */
   dbus_uint32_t dummy3; /**< Don't use this */
@@ -104,15 +105,15 @@ dbus_bool_t   dbus_message_set_path         (DBusMessage   *message,
 DBUS_EXPORT
 const char*   dbus_message_get_path         (DBusMessage   *message);
 DBUS_EXPORT
-dbus_bool_t   dbus_message_has_path         (DBusMessage   *message, 
-                                             const char    *object_path);  
+dbus_bool_t   dbus_message_has_path         (DBusMessage   *message,
+                                             const char    *object_path);
 DBUS_EXPORT
 dbus_bool_t   dbus_message_set_interface    (DBusMessage   *message,
                                              const char    *iface);
 DBUS_EXPORT
 const char*   dbus_message_get_interface    (DBusMessage   *message);
 DBUS_EXPORT
-dbus_bool_t   dbus_message_has_interface    (DBusMessage   *message, 
+dbus_bool_t   dbus_message_has_interface    (DBusMessage   *message,
                                              const char    *iface);
 DBUS_EXPORT
 dbus_bool_t   dbus_message_set_member       (DBusMessage   *message,
@@ -120,7 +121,7 @@ dbus_bool_t   dbus_message_set_member       (DBusMessage   *message,
 DBUS_EXPORT
 const char*   dbus_message_get_member       (DBusMessage   *message);
 DBUS_EXPORT
-dbus_bool_t   dbus_message_has_member       (DBusMessage   *message, 
+dbus_bool_t   dbus_message_has_member       (DBusMessage   *message,
                                              const char    *member);
 DBUS_EXPORT
 dbus_bool_t   dbus_message_set_error_name   (DBusMessage   *message,
@@ -167,7 +168,7 @@ dbus_bool_t   dbus_message_has_signature    (DBusMessage   *message,
 DBUS_EXPORT
 dbus_uint32_t dbus_message_get_serial       (DBusMessage   *message);
 DBUS_EXPORT
-void          dbus_message_set_serial       (DBusMessage   *message, 
+void          dbus_message_set_serial       (DBusMessage   *message,
                                              dbus_uint32_t  serial);
 DBUS_EXPORT
 dbus_bool_t   dbus_message_set_reply_serial (DBusMessage   *message,
@@ -189,20 +190,20 @@ DBUS_EXPORT
 dbus_bool_t dbus_message_append_args          (DBusMessage     *message,
 					       int              first_arg_type,
 					       ...);
-DBUS_EXPORT
-dbus_bool_t dbus_message_append_args_valist   (DBusMessage     *message,
-					       int              first_arg_type,
-					       va_list          var_args);
+//DBUS_EXPORT
+//dbus_bool_t dbus_message_append_args_valist   (DBusMessage     *message,
+//					       int              first_arg_type,
+//					       va_list          var_args);
 DBUS_EXPORT
 dbus_bool_t dbus_message_get_args             (DBusMessage     *message,
 					       DBusError       *error,
 					       int              first_arg_type,
 					       ...);
-DBUS_EXPORT
-dbus_bool_t dbus_message_get_args_valist      (DBusMessage     *message,
-					       DBusError       *error,
-					       int              first_arg_type,
-					       va_list          var_args);
+//DBUS_EXPORT
+//dbus_bool_t dbus_message_get_args_valist      (DBusMessage     *message,
+//					       DBusError       *error,
+//					       int              first_arg_type,
+//					       va_list          var_args);
 
 DBUS_EXPORT
 dbus_bool_t dbus_message_contains_unix_fds    (DBusMessage *message);
@@ -299,7 +300,7 @@ DBusMessage* dbus_message_demarshal (const char *str,
                                      DBusError  *error);
 
 DBUS_EXPORT
-int          dbus_message_demarshal_bytes_needed (const char *str, 
+int          dbus_message_demarshal_bytes_needed (const char *str,
                                                   int len);
 
 /** @} */
