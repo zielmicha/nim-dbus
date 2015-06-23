@@ -1,4 +1,3 @@
-/dbus_lowlevel
-/dbus_lowlevel.h
-/dbus_lowlevel.nim
+/include/lowlevel.h
+/dbus/lowlevel.nim
 /nimcache
