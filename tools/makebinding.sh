@@ -2,6 +2,6 @@
 set -e
 
 (cd include &&
-    cpp -C -I. dbus/dbus.h > lowlevel.h)
+    cpp -C -I. dbus/dbus.h > ../dbus/lowlevel.h)
 
-(cd dbus && c2nim --header ../include/lowlevel.h)
+c2nim --header dbus/lowlevel.h
