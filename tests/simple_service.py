@@ -13,6 +13,10 @@ class MyDBUSService(dbus.service.Object):
         print 'hello world'
         return "Hello, world!"
 
+    @dbus.service.signal('com.zielmicha.testsignal')
+    def hello_sig(self):
+        print 'hello world sig'
+
 DBusGMainLoop(set_as_default=True)
 myservice = MyDBUSService()
 Gtk.main()
