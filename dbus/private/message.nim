@@ -1,6 +1,3 @@
-import dbus/lowlevel
-import dbus/bus
-import unsigned
 
 type Message* = object
   msg: ptr DBusMessage

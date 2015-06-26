@@ -1,9 +1,7 @@
-import dbus.bus
-import dbus.message
-import dbus.reply
 import unsigned
+import dbus
 
-let mybus = getBus(bus.DBUS_BUS_SESSION)
+let bus = getBus(dbus.DBUS_BUS_SESSION)
 var msg = makeCall("com.zielmicha.test",
              "/com/zielmicha/test",
              "com.zielmicha.test",
@@ -13,8 +11,8 @@ var msg = makeCall("com.zielmicha.test",
 #msg.append(uint32(1))
 #msg.append("")
 
-let pending = mybus.sendMessageWithReply(msg)
-mybus.flush()
+let pending = bus.sendMessageWithReply(msg)
+bus.flush()
 
-let myreply = pending.waitForReply()
-myreply.raiseIfError()
+let reply = pending.waitForReply()
+reply.raiseIfError()

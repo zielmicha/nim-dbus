@@ -1,6 +1,3 @@
-import dbus/lowlevel
-import dbus/bus
-import dbus/message
 
 type Reply* = object
   msg: ptr DBusMessage

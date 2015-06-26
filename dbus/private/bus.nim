@@ -1,8 +1,4 @@
-{.passl: "-ldbus-1".}
-import dbus/lowlevel
-import unsigned
-
-export lowlevel.DBUS_BUS_SESSION
+export dbus.lowlevel.DBUS_BUS_SESSION
 
 converter toBool(x: dbus_bool_t): bool = x != 0
 
