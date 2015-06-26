@@ -7,7 +7,7 @@ type DbusException* = object of Exception
 type DbusRemoteException* = object of DbusException
 
 type Connection* = object
-  conn*: ptr DBusConnection
+  conn: ptr DBusConnection
 
 proc getBus*(busType: DBusBusType): Connection =
   var err: DBusError
