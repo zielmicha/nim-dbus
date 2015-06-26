@@ -8,6 +8,8 @@ converter toBool(x: dbus_bool_t): bool = x != 0
 
 type DbusException = object of Exception
 
+type DbusRemoteException = object of DbusException
+
 type Connection* = object
   conn: ptr DBusConnection
 
@@ -52,6 +54,44 @@ proc sendMessage*(conn: Connection, msg: var Message): dbus_uint32_t {.discardab
   if not bool(ret):
       raise newException(DbusException, "dbus_connection_send")
   return serial
+
+type PendingCall* = object
+  call: ptr DBusPendingCall
+
+proc sendMessageWithReply*(conn: Connection, msg: var Message): PendingCall =
+  let ret = dbus_connection_send_with_reply(conn.conn, msg.msg, addr result.call, -1)
+  dbus_message_unref(msg.msg)
+  msg.msg = nil
+  if not bool(ret):
+    raise newException(DbusException, "dbus_connection_send_with_reply")
+  if result.call == nil:
+    raise newException(DbusException, "pending call still nil")
+
+type Reply* = object
+  msg: ptr DBusMessage
+
+type ReplyType* = enum
+  rtInvalid = 0, rtMethodCall = 1, rtMethodReturn = 2,
+  rtError = 3, rtSignal = 4
+
+proc type*(reply: Reply): ReplyType =
+  return dbus_message_get_type(reply.msg).ReplyType
+
+proc errorName*(reply: Reply): string =
+  return $dbus_message_get_error_name(reply.msg)
+
+proc raiseIfError*(reply: Reply) =
+  if reply.type == rtError:
+    raise newException(DbusRemoteException, reply.errorName)
+
+proc waitForReply*(call: PendingCall): Reply =
+  dbus_pending_callblock(call.call)
+  result.msg = dbus_pending_call_steal_reply(call.call)
+
+  defer: dbus_pending_call_unref(call.call)
+
+  if result.msg == nil:
+    raise newException(DbusException, "dbus_pending_call_steal_reply")
 
 proc flush*(conn: Connection) =
   dbus_connection_flush(conn.conn)
