@@ -34,7 +34,7 @@ proc sendMessageWithReply*(conn: Connection, msg: var Message): PendingCall =
 proc append(msg: Message, typecode: DbusType, data: pointer) =
   var args: DBusMessageIter
   dbus_message_iter_init_append(msg.msg, addr args);
-  if dbus_message_iter_append_basic(addr args, typecode.char.cint, data) == 0:
+  if dbus_message_iter_append_basic(addr args, typecode.kind.char.cint, data) == 0:
       raise newException(DbusException, "append_basic")
 
 proc append*[T: cstring|uint32|int32|uint16|int16](msg: Message, x: T) =
@@ -42,4 +42,6 @@ proc append*[T: cstring|uint32|int32|uint16|int16](msg: Message, x: T) =
   msg.append(getDbusType(T), addr y)
 
 proc append*(msg: Message, x: string) =
+  # TODO: check if dbus_message_iter_init_append appends or there is a room
+  # for use use-after-free.
   msg.append(x.cstring)

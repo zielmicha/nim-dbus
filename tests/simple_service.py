@@ -9,8 +9,8 @@ class MyDBUSService(dbus.service.Object):
         dbus.service.Object.__init__(self, bus_name, '/com/zielmicha/test')
 
     @dbus.service.method('com.zielmicha.test')
-    def hello(self):
-        print 'hello world'
+    def hello(self, *args, **kwargs):
+        print 'hello world {} {}'.format(args, kwargs)
         return "Hello, world!"
 
     @dbus.service.signal('com.zielmicha.testsignal')
