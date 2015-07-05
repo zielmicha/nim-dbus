@@ -1,6 +1,8 @@
 import strutils, tables
 
-#{.hint[XDeclaredButNotUsed]: off.}
+type ObjectPath = distinct string
+type Signature = distinct string
+
 type DbusTypeChar* = enum
   dtArray = 'a',
   dtBool = 'b',

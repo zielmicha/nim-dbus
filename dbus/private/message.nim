@@ -5,10 +5,10 @@ type Message* = object
 proc makeSignal*(path: string, iface: string, name: string): Message =
   result.msg = dbus_message_new_signal(path, iface, name)
 
-proc makeCall*(dest: string, path: string, iface: string, name: string): Message =
-  result.msg = dbus_message_new_method_call(dest, path, iface, name)
+proc makeCall*(uniqueName: string, path: string, iface: string, name: string): Message =
+  result.msg = dbus_message_new_method_call(uniqueName, path, iface, name)
 
-proc sendMessage*(conn: Connection, msg: var Message): dbus_uint32_t {.discardable.} =
+proc sendMessage*(conn: Bus, msg: var Message): dbus_uint32_t {.discardable.} =
   var serial: dbus_uint32_t
   let ret = dbus_connection_send(conn.conn, msg.msg, addr serial)
   dbus_message_unref(msg.msg)
@@ -20,7 +20,7 @@ proc sendMessage*(conn: Connection, msg: var Message): dbus_uint32_t {.discardab
 type PendingCall* = object
   call: ptr DBusPendingCall
 
-proc sendMessageWithReply*(conn: Connection, msg: var Message): PendingCall =
+proc sendMessageWithReply*(conn: Bus, msg: var Message): PendingCall =
   let ret = dbus_connection_send_with_reply(conn.conn, msg.msg, addr result.call, -1)
   dbus_message_unref(msg.msg)
   msg.msg = nil

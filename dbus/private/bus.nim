@@ -6,10 +6,19 @@ type DbusException* = object of Exception
 
 type DbusRemoteException* = object of DbusException
 
-type Connection* = object
+type Bus* = ref object
   conn: ptr DBusConnection
 
-proc getBus*(busType: DBusBusType): Connection =
+type UniqueBus* = object
+  bus*: Bus
+  uniqueName*: string
+
+# we don't destroy the connection as dbus_bus_get returns shared pointer
+proc destroyConnection(bus: Bus) =
+  dbus_connection_close(bus.conn)
+
+proc getBus*(busType: DBusBusType): Bus =
+  new(result)
   var err: DBusError
   dbus_error_init(addr err)
   result.conn = dbus_bus_get(busType, addr err);
@@ -19,5 +28,12 @@ proc getBus*(busType: DBusBusType): Connection =
 
   assert result.conn != nil
 
-proc flush*(conn: Connection) =
+proc getUniqueBus(bus: Bus, uniqueName: string): UniqueBus =
+  result.bus = bus
+  result.uniqueName = uniqueName
+
+proc getUniqueBus(busType: DBusBusType, uniqueName: string): UniqueBus =
+  getUniqueBus(getBus(busType), uniqueName)
+
+proc flush*(conn: Bus) =
   dbus_connection_flush(conn.conn)

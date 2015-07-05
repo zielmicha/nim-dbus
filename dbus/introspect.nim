@@ -7,9 +7,9 @@ proc parseXml*(content: string): XmlNode =
 type ArgDef* = tuple[name: string, kind: DbusType]
 
 type MethodDef* = object
-  name: string
-  inargs: seq[ArgDef]
-  outargs: seq[ArgDef]
+  name*: string
+  inargs*: seq[ArgDef]
+  outargs*: seq[ArgDef]
 
 proc parseMethod(item: XmlNode): MethodDef =
   result.name = item.attrs["name"]
@@ -21,7 +21,7 @@ proc parseMethod(item: XmlNode): MethodDef =
       let kind = parseDbusType(attr.attrs["type"])
       let name = attr.attrs["name"]
       let def: ArgDef = (name: name, kind: kind)
-      if direction == "in":
+      if direction == "in" or direction == nil:
         result.inargs.add(def)
       else:
         result.outargs.add(def)
@@ -31,3 +31,6 @@ proc getMethods*(xml: XmlNode): seq[MethodDef] =
   for item in xml.items:
     if item.tag == "method":
       result.add parseMethod(item)
+
+proc getInterfaceName*(xml: XmlNode): string =
+  xml.attrs["name"]
