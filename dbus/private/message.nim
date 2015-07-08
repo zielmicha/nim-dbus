@@ -5,8 +5,8 @@ type Message* = object
 proc makeSignal*(path: string, iface: string, name: string): Message =
   result.msg = dbus_message_new_signal(path, iface, name)
 
-proc makeCall*(uniqueName: string, path: string, iface: string, name: string): Message =
-  result.msg = dbus_message_new_method_call(uniqueName, path, iface, name)
+proc makeCall*(uniqueName: string, path: ObjectPath, iface: string, name: string): Message =
+  result.msg = dbus_message_new_method_call(uniqueName, path.string, iface, name)
 
 proc sendMessage*(conn: Bus, msg: var Message): dbus_uint32_t {.discardable.} =
   var serial: dbus_uint32_t
@@ -19,9 +19,11 @@ proc sendMessage*(conn: Bus, msg: var Message): dbus_uint32_t {.discardable.} =
 
 type PendingCall* = object
   call: ptr DBusPendingCall
+  bus: Bus
 
-proc sendMessageWithReply*(conn: Bus, msg: var Message): PendingCall =
-  let ret = dbus_connection_send_with_reply(conn.conn, msg.msg, addr result.call, -1)
+proc sendMessageWithReply*(bus: Bus, msg: var Message): PendingCall =
+  result.bus = bus
+  let ret = dbus_connection_send_with_reply(bus.conn, msg.msg, addr result.call, -1)
   dbus_message_unref(msg.msg)
   msg.msg = nil
   if not bool(ret):
@@ -42,6 +44,5 @@ proc append*[T: cstring|uint32|int32|uint16|int16](msg: Message, x: T) =
   msg.append(getDbusType(T), addr y)
 
 proc append*(msg: Message, x: string) =
-  # TODO: check if dbus_message_iter_init_append appends or there is a room
-  # for use use-after-free.
+  # dbus_message_iter_append_basic copies its argument, so this is safe
   msg.append(x.cstring)

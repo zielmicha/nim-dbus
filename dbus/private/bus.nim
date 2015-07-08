@@ -18,6 +18,8 @@ proc destroyConnection(bus: Bus) =
   dbus_connection_close(bus.conn)
 
 proc getBus*(busType: DBusBusType): Bus =
+  let ok = dbus_threads_init_default() # enable threads
+  assert ok
   new(result)
   var err: DBusError
   dbus_error_init(addr err)

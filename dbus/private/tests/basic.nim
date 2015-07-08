@@ -12,7 +12,6 @@ msg.append(uint32(1))
 #msg.append("")
 
 let pending = bus.sendMessageWithReply(msg)
-bus.flush()
 
 let reply = pending.waitForReply()
 reply.raiseIfError()

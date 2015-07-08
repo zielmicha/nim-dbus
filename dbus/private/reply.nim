@@ -17,6 +17,7 @@ proc raiseIfError*(reply: Reply) =
     raise newException(DbusRemoteException, reply.errorName)
 
 proc waitForReply*(call: PendingCall): Reply =
+  call.bus.flush()
   dbus_pending_callblock(call.call)
   result.msg = dbus_pending_call_steal_reply(call.call)
 
@@ -24,3 +25,6 @@ proc waitForReply*(call: PendingCall): Reply =
 
   if result.msg == nil:
     raise newException(DbusException, "dbus_pending_call_steal_reply")
+
+proc toNative*[T](call: Reply): T =
+  call.raiseIfError()

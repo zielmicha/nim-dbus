@@ -1,6 +1,6 @@
 import dbus
 import dbus/introspect
-import strutils
+import strutils, sequtils, future
 
 proc genType*(kind: DbusType): string =
   case kind.kind:
@@ -60,16 +60,29 @@ proc ifaceTypeName(name: string): string =
 
 proc genIface*(ifaceName: string): string =
   let ifaceType = ifaceTypeName(ifaceName)
-  result = "type %1 = distinct DbusIfaceWrapper" % ifaceType
+  result = "type $1 = object of DbusIfaceWrapper" % ifaceType
 
 proc genMethodWrapper*(ifaceName: string, def: MethodDef): string =
+  # async version
   var args: seq[string] = @[]
   args.add "dbusIface: " & ifaceTypeName(ifaceName)
   for arg in def.inargs:
     args.add "$1: $2" % [arg.name, genType(arg.kind)]
-  result = "proc $1($2): $3 =\n" % [
-    def.name, args.join(", "), genRetType(def.outargs)]
+  result = "\nproc $1Async($2): PendingCall =\n" % [
+    def.name, args.join(", ")]
   result.add(("  let msg = makeCall(dbusIface.uniqueBus.uniqueName, " &
-             "dbusIface.path, \"$1\")\n") % [ifaceName])
+             "dbusIface.path, \"$1\", \"$2\")\n") % [ifaceName, def.name])
   for arg in def.inargs:
     result.add("  msg.append($1)\n" % arg.name)
+
+  result.add("  return bus.sendMessageWithReply(msg)\n\n")
+
+  # sync version
+  let retType = genRetType(def.outargs)
+  result.add "proc $1($2): $3 =\n" % [
+    def.name, args.join(", "), retType]
+
+  let argNames = def.inargs.map((arg: ArgDef) => arg.name)
+
+  result.add "  $1Async(dbusIface, $2).waitForReply().toNative[$3]()\n" % [
+    def.name, argNames.join(", "), retType]
