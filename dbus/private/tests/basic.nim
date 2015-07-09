@@ -1,4 +1,4 @@
-import unsigned
+import unsigned, tables
 import dbus
 
 let bus = getBus(dbus.DBUS_BUS_SESSION)
@@ -12,6 +12,7 @@ msg.append(uint32(1))
 msg.append(uint32(1))
 msg.append("hello".asDbusValue)
 msg.append(@["a", "b"])
+msg.append({"a": "b"}.toTable)
 
 let pending = bus.sendMessageWithReply(msg)
 

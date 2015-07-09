@@ -34,6 +34,7 @@ proc sendMessageWithReply*(bus: Bus, msg: var Message): PendingCall =
 # Serialization
 
 proc append(iter: ptr DbusMessageIter, x: DbusValue)
+proc append[T](iter: ptr DbusMessageIter, x: T)
 
 proc initIter(msg: Message): DbusMessageIter =
   dbus_message_iter_init_append(msg.msg, addr result)
@@ -46,9 +47,8 @@ proc appendPrimitive[T](iter: ptr DbusMessageIter, kind: DbusType, x: T) =
   var y: T = x
   iter.appendPtr(kind, addr y)
 
-proc appendArray(iter: ptr DbusMessageIter, valueType: DbusType, arr: openarray[DbusValue]) =
+proc appendArray(iter: ptr DbusMessageIter, sig: string, arr: openarray[DbusValue]) =
   var subIter: DBusMessageIter
-  let sig = valueType.makeDbusSignature
   if dbus_message_iter_open_container(iter, cint(dtArray), cstring(sig), addr subIter) == 0:
     raise newException(DbusException, "open_container")
   for item in arr:
@@ -66,7 +66,9 @@ proc append(iter: ptr DbusMessageIter, x: DbusValue) =
       var str: cstring = x.getString.cstring
       iter.appendPtr(x.kind, addr str)
     of dtArray:
-      iter.appendArray(x.arrayValueType, x.arrayValue)
+      iter.appendArray(x.arrayValueType.makeDbusSignature, x.arrayValue)
+    of dtDict:
+      discard
     else:
       raise newException(ValueError, "not serializable")
 

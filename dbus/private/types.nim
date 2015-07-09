@@ -7,6 +7,7 @@ type DbusTypeChar* = enum
   dtArray = 'a',
   dtBool = 'b',
   dtDouble = 'd',
+  dtDictEntry = 'e',
   dtSignature = 'g',
   dtUnixFd = 'h'
   dtInt32 = 'i',
@@ -20,6 +21,7 @@ type DbusTypeChar* = enum
   dtVariant = 'v'
   dtInt64 = 'x',
   dtByte = 'y'
+  dtDict = '{'
 
 const dbusScalarTypes = {dtBool, dtDouble, dtInt32, dtInt16, dtUint16, dtUint64, dtUint32, dtInt64, dtByte}
 const dbusStringTypes = {dtString, dtObjectPath, dtSignature}
@@ -28,9 +30,11 @@ type DbusType* = ref object
   case kind*: DbusTypeChar
   of dtArray:
     itemType*: DbusType
-  of dtStruct:
+  of dtDict:
     keyType*: DbusType
     valueType*: DbusType
+  of dtStruct:
+    itemTypes*: seq[DbusType]
   else:
     discard
 
@@ -44,11 +48,16 @@ proc initArrayType*(itemType: DbusType): DbusType =
   result.kind = dtArray
   result.itemType = itemType
 
-proc initStructType*(keyType: DbusType, valueType: DbusType): DbusType =
+proc initDictType*(keyType: DbusType, valueType: DbusType): DbusType =
   new(result)
-  result.kind = dtStruct
+  result.kind = dtDict
   result.keyType = keyType
   result.valueType = valueType
+
+proc initStructType*(itemTypes: seq[DbusType]): DbusType =
+  new(result)
+  result.kind = dtStruct
+  result.itemTypes = itemTypes
 
 proc parseDbusFragment(signature: string): tuple[kind: DbusType, rest: string] =
   case signature[0]:
@@ -59,7 +68,15 @@ proc parseDbusFragment(signature: string): tuple[kind: DbusType, rest: string] =
       let keyRet = parseDbusFragment(signature[1..^1])
       let valueRet = parseDbusFragment(keyRet.rest)
       assert valueRet.rest[0] == "}"[0]
-      return (initStructType(keyRet.kind, valueRet.kind), valueRet.rest[1..^1])
+      return (initDictType(keyRet.kind, valueRet.kind), valueRet.rest[1..^1])
+    of '(':
+      var left = signature[1..^1]
+      var types: seq[DbusType] = @[]
+      while left[0] != ')':
+        let ret = parseDbusFragment(left)
+        left = ret.rest
+        types.add ret.kind
+      return (initStructType(types), left[1..^1])
     else:
       let kind = signature[0].DbusTypeChar
       return (fromScalar(kind), signature[1..^1])

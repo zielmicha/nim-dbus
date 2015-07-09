@@ -3,6 +3,8 @@ import tables
 type
   FD* = cint
 
+  DictEntry = tuple[key: DbusValue, value: DbusValue]
+
   DbusValue* = ref object
     case kind: DbusTypeChar:
       of dtArray:
@@ -10,6 +12,10 @@ type
         arrayValue: seq[DbusValue]
       of dtBool:
         boolValue: bool
+      of dtDict:
+        dictKeyType: DbusType
+        dictValueType: DbusType
+        dictValue: seq[DictEntry]
       of dtDouble:
         doubleValue: float64
       of dtSignature:
@@ -24,10 +30,10 @@ type
         objectPathValue: ObjectPath
       of dtUint16:
         uint16Value: uint16
-      of dtStruct:
-        structValue: TableRef[DbusValue, DbusValue]
       of dtString:
         stringValue: string
+      of dtStruct:
+        structValues: seq[DbusValue]
       of dtUint64:
         uint64Value: uint64
       of dtUint32:
@@ -142,3 +148,12 @@ proc asDbusValue*[T](val: seq[T]): DbusValue =
   result.arrayValueType = getDbusType(T)
   for x in val:
     result.arrayValue.add x.asDbusValue
+
+proc asDbusValue*[K, V](val: Table[K, V]): DbusValue =
+  new(result)
+  result.kind = dtDict
+  result.dictValue = @[]
+  result.dictKeyType = getDbusType(K)
+  result.dictValueType = getDbusType(V)
+  for k, v in val:
+    result.dictValue.add((k.asDbusValue,  v.asDbusValue))
