@@ -33,16 +33,47 @@ proc sendMessageWithReply*(bus: Bus, msg: var Message): PendingCall =
 
 # Serialization
 
-proc append(msg: Message, typecode: DbusType, data: pointer) =
-  var args: DBusMessageIter
-  dbus_message_iter_init_append(msg.msg, addr args);
-  if dbus_message_iter_append_basic(addr args, typecode.kind.char.cint, data) == 0:
+proc append(iter: ptr DbusMessageIter, x: DbusValue)
+
+proc initIter(msg: Message): DbusMessageIter =
+  dbus_message_iter_init_append(msg.msg, addr result)
+
+proc appendPtr(iter: ptr DbusMessageIter, typecode: DbusType, data: pointer) =
+  if dbus_message_iter_append_basic(iter, typecode.kind.char.cint, data) == 0:
       raise newException(DbusException, "append_basic")
 
-proc append*[T: cstring|uint32|int32|uint16|int16](msg: Message, x: T) =
+proc appendPrimitive[T](iter: ptr DbusMessageIter, kind: DbusType, x: T) =
   var y: T = x
-  msg.append(getDbusType(T), addr y)
+  iter.appendPtr(kind, addr y)
 
-proc append*(msg: Message, x: string) =
-  # dbus_message_iter_append_basic copies its argument, so this is safe
-  msg.append(x.cstring)
+proc appendArray(iter: ptr DbusMessageIter, valueType: DbusType, arr: openarray[DbusValue]) =
+  var subIter: DBusMessageIter
+  let sig = valueType.makeDbusSignature
+  if dbus_message_iter_open_container(iter, cint(dtArray), cstring(sig), addr subIter) == 0:
+    raise newException(DbusException, "open_container")
+  for item in arr:
+    (addr subIter).append(item)
+  if dbus_message_iter_close_container(iter, addr subIter) == 0:
+    raise newException(DbusException, "close_container")
+
+proc append(iter: ptr DbusMessageIter, x: DbusValue) =
+  var myX = x
+  case x.kind:
+    of dbusScalarTypes:
+      iter.appendPtr(x.kind, myX.getPrimitive)
+    of dbusStringTypes:
+      # dbus_message_iter_append_basic copies its argument, so this is safe
+      var str: cstring = x.getString.cstring
+      iter.appendPtr(x.kind, addr str)
+    of dtArray:
+      iter.appendArray(x.arrayValueType, x.arrayValue)
+    else:
+      raise newException(ValueError, "not serializable")
+
+# anything convertible to DbusValue
+proc append[T](iter: ptr DbusMessageIter, x: T) =
+  iter.append(x.asDbusValue)
+
+proc append*[T](msg: Message, x: T) =
+  var iter = initIter(msg)
+  append(addr iter, x)

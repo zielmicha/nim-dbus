@@ -1,7 +1,7 @@
 import strutils, tables
 
-type ObjectPath = distinct string
-type Signature = distinct string
+type ObjectPath* = distinct string
+type Signature* = distinct string
 
 type DbusTypeChar* = enum
   dtArray = 'a',
@@ -20,6 +20,9 @@ type DbusTypeChar* = enum
   dtVariant = 'v'
   dtInt64 = 'x',
   dtByte = 'y'
+
+const dbusScalarTypes = {dtBool, dtDouble, dtInt32, dtInt16, dtUint16, dtUint64, dtUint32, dtInt64, dtByte}
+const dbusStringTypes = {dtString, dtObjectPath, dtSignature}
 
 type DbusType* = ref object
   case kind*: DbusTypeChar
@@ -76,12 +79,6 @@ proc makeDbusSignature*(kind: DbusType): string =
     else:
       $(kind.kind.char)
 
-proc getDbusType[T](native: typedesc[seq[T]]): DbusType =
-  initArrayType(getDbusType(T))
-
-proc getDbusType[K, V](native: typedesc[TableRef[K, V]]): DbusType =
-  initStructType(getDbusType(K), getDbusType(V))
-
 proc getDbusType(native: typedesc[uint32]): DbusType =
   dtUint32
 
@@ -96,3 +93,15 @@ proc getDbusType(native: typedesc[int16]): DbusType =
 
 proc getDbusType(native: typedesc[cstring]): DbusType =
   dtString
+
+proc getAnyDbusType[T](native: typedesc[T]): DbusType =
+  getDbusType(native)
+
+proc getAnyDbusType(native: typedesc[string]): DbusType =
+  getDbusType(cstring)
+
+proc getAnyDbusType[T](native: typedesc[seq[T]]): DbusType =
+  initArrayType(getDbusType(T))
+
+proc getAnyDbusType[K, V](native: typedesc[TableRef[K, V]]): DbusType =
+  initStructType(getDbusType(K), getDbusType(V))
