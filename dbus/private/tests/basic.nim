@@ -23,5 +23,5 @@ reply.raiseIfError()
 var it = reply.iterate
 let v = it.unpackCurrent(DbusValue)
 assert v.asNative(string) == "Hello, world!"
-discard it.advanceIter
+it.advanceIter
 assert it.unpackCurrent(uint32) == 6

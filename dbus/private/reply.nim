@@ -26,6 +26,9 @@ proc waitForReply*(call: PendingCall): Reply =
   if result.msg == nil:
     raise newException(DbusException, "dbus_pending_call_steal_reply")
 
+proc close*(reply: Reply) =
+  dbus_message_unref(reply.msg)
+
 type InputIter* = object
   iter: DbusMessageIter
 
@@ -33,15 +36,19 @@ proc iterate*(reply: Reply): InputIter =
   if dbus_message_iter_init(reply.msg, addr result.iter) == 0:
     raise newException(DbusException, "dbus_message_iter_init")
 
-proc advanceIter*(iter: var InputIter): bool =
-  return dbus_message_iter_next(addr iter.iter) != 0
+proc advanceIter*(iter: var InputIter) =
+  if dbus_message_iter_next(addr iter.iter) == 0:
+    raise newException(DbusException, "cannot advance iterator")
 
-proc toNative*[T](call: Reply): T =
-  call.raiseIfError()
+proc ensureEnd*(iter: var InputIter) =
+  if dbus_message_iter_next(addr iter.iter) != 0:
+    raise newException(DbusException, "got more arguments than expected")
 
 proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue =
   let kind = dbus_message_iter_get_arg_type(addr iter.iter).DbusTypeChar
   case kind:
+  of dtNull:
+    raise newException(DbusException, "no argument")
   of dbusScalarTypes:
     let (value, scalarPtr) = createScalarDbusValue(kind)
     dbus_message_iter_get_basic(addr iter.iter, scalarPtr)

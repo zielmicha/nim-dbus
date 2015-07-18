@@ -1,0 +1,8 @@
+<interface name="com.zielmicha.test">
+  <method name="hello">
+    <arg name="num" type="u" direction="in"/>
+    <arg name="sss" type="s" direction="in"/>
+    <arg name="salutation" type="s" direction="out"/>
+    <arg name="retnum" type="u" direction="out"/>
+  </method>
+</interface>

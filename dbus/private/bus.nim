@@ -30,11 +30,11 @@ proc getBus*(busType: DBusBusType): Bus =
 
   assert result.conn != nil
 
-proc getUniqueBus(bus: Bus, uniqueName: string): UniqueBus =
+proc getUniqueBus*(bus: Bus, uniqueName: string): UniqueBus =
   result.bus = bus
   result.uniqueName = uniqueName
 
-proc getUniqueBus(busType: DBusBusType, uniqueName: string): UniqueBus =
+proc getUniqueBus*(busType: DBusBusType, uniqueName: string): UniqueBus =
   getUniqueBus(getBus(busType), uniqueName)
 
 proc flush*(conn: Bus) =

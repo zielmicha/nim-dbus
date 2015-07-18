@@ -21,11 +21,10 @@ type PendingCall* = object
   call: ptr DBusPendingCall
   bus: Bus
 
-proc sendMessageWithReply*(bus: Bus, msg: var Message): PendingCall =
+proc sendMessageWithReply*(bus: Bus, msg: Message): PendingCall =
   result.bus = bus
   let ret = dbus_connection_send_with_reply(bus.conn, msg.msg, addr result.call, -1)
   dbus_message_unref(msg.msg)
-  msg.msg = nil
   if not bool(ret):
     raise newException(DbusException, "dbus_connection_send_with_reply")
   if result.call == nil:
