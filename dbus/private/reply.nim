@@ -26,5 +26,32 @@ proc waitForReply*(call: PendingCall): Reply =
   if result.msg == nil:
     raise newException(DbusException, "dbus_pending_call_steal_reply")
 
+type InputIter* = object
+  iter: DbusMessageIter
+
+proc iterate*(reply: Reply): InputIter =
+  if dbus_message_iter_init(reply.msg, addr result.iter) == 0:
+    raise newException(DbusException, "dbus_message_iter_init")
+
+proc advanceIter*(iter: var InputIter): bool =
+  return dbus_message_iter_next(addr iter.iter) != 0
+
 proc toNative*[T](call: Reply): T =
   call.raiseIfError()
+
+proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue =
+  let kind = dbus_message_iter_get_arg_type(addr iter.iter).DbusTypeChar
+  case kind:
+  of dbusScalarTypes:
+    let (value, scalarPtr) = createScalarDbusValue(kind)
+    dbus_message_iter_get_basic(addr iter.iter, scalarPtr)
+    return value
+  of dbusStringTypes:
+    var s: cstring
+    dbus_message_iter_get_basic(addr iter.iter, addr s)
+    return createStringDbusValue(kind, $s)
+  else:
+    raise newException(DbusException, "not supported")
+
+proc unpackCurrent*[T](iter: var InputIter, native: typedesc[T]): T =
+  unpackCurrent(iter, DbusValue).asNative(native)

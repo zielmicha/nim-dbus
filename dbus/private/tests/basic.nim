@@ -7,6 +7,7 @@ var msg = makeCall("com.zielmicha.test",
              "com.zielmicha.test",
              "hello")
 
+msg.append(uint32(6))
 msg.append("hello")
 msg.append(uint32(1))
 msg.append(uint32(1))
@@ -18,3 +19,9 @@ let pending = bus.sendMessageWithReply(msg)
 
 let reply = pending.waitForReply()
 reply.raiseIfError()
+
+var it = reply.iterate
+let v = it.unpackCurrent(DbusValue)
+assert v.asNative(string) == "Hello, world!"
+discard it.advanceIter
+assert it.unpackCurrent(uint32) == 6

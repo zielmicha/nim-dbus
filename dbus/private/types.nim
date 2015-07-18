@@ -4,6 +4,7 @@ type ObjectPath* = distinct string
 type Signature* = distinct string
 
 type DbusTypeChar* = enum
+  dtNull = '\0', # workaround for Nim bug #3096
   dtArray = 'a',
   dtBool = 'b',
   dtDouble = 'd',

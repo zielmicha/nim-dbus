@@ -1,4 +1,3 @@
-import docopt
 import dbus
 import dbus/introspect
 import dbus/gennim
