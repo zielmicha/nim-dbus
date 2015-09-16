@@ -5,4 +5,4 @@ set -e
     cd include &&
     cpp -C -I. dbus/dbus.h) > dbus/lowlevel.h
 
-c2nim --concat --dynlib:'libdbus' dbus/lowlevel.h
+c2nim --cdecl --concat --dynlib:'libdbus' dbus/lowlevel.h
