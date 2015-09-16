@@ -6,6 +6,9 @@ type ReplyType* = enum
   rtInvalid = 0, rtMethodCall = 1, rtMethodReturn = 2,
   rtError = 3, rtSignal = 4
 
+proc replyFromMessage*(msg: ptr DbusMessage): Reply =
+  result.msg = msg
+
 proc type*(reply: Reply): ReplyType =
   return dbus_message_get_type(reply.msg).ReplyType
 

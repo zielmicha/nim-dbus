@@ -1,5 +1,14 @@
+# RAW
 
-type DbusVTable = ref object
+proc requestName*(bus: Bus, name: string) =
+  var err: DBusError
+  dbus_error_init(addr err)
+
+  let ret = dbus_bus_request_name(bus.conn, name, 0, addr err)
+
+  if ret < 0:
+    defer: dbus_error_free(addr err)
+    raise newException(DbusException, $err.message)
 
 proc registerObject(bus: Bus, path: ObjectPath,
                     messageFunc: DBusObjectPathMessageFunction,
@@ -15,6 +24,66 @@ proc registerObject(bus: Bus, path: ObjectPath,
 
   let ok = dbus_connection_try_register_object_path(bus.conn, path.string, addr vtable, userData, addr err)
 
-  if ok != 0:
+  if ok == 0:
     defer: dbus_error_free(addr err)
     raise newException(DbusException, $err.message)
+
+# TYPES
+
+type
+  IncomingMessageType* = enum
+    mtCall
+    mtSignal
+
+  MessageCallback* = proc(kind: IncomingMessageType, incomingMessage: IncomingMessage): bool
+
+  IncomingMessage* = object
+    msg: ptr DBusMessage
+
+  PackedMessageCallback = ref object
+    callback: MessageCallback
+
+proc name*(incoming: IncomingMessage): string =
+  $dbus_message_get_member(incoming.msg)
+
+proc interfaceName*(incoming: IncomingMessage): string =
+  $dbus_message_get_interface(incoming.msg)
+
+proc iterate*(incoming: IncomingMessage): InputIter =
+  if dbus_message_iter_init(incoming.msg, addr result.iter) == 0:
+    raise newException(DbusException, "dbus_message_iter_init")
+
+# VTABLE
+
+const
+  DBUS_MESSAGE_TYPE_METHOD_CALL = 1
+  DBUS_MESSAGE_TYPE_SIGNAL = 4
+
+proc messageFunc(connection: ptr DBusConnection, message: ptr DBusMessage, user_data: pointer): DBusHandlerResult {.cdecl.} =
+  let rawType = dbus_message_get_type(message)
+  var kind: IncomingMessageType
+  if rawType == DBUS_MESSAGE_TYPE_METHOD_CALL:
+    kind = mtCall
+  elif rawType == DBUS_MESSAGE_TYPE_SIGNAL:
+    kind = mtSignal
+  else:
+    echo "unknown message ", rawType
+    return
+
+  let callback = cast[PackedMessageCallback](userData).callback
+  let ok = callback(kind, IncomingMessage(msg: message))
+  if ok:
+    return DBUS_HANDLER_RESULT_HANDLED
+  else:
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED
+
+proc unregisterFunc(connection: ptr DBusConnection, userData: pointer) {.cdecl.} =
+  GC_unref cast[PackedMessageCallback](userData)
+
+proc registerObject*(bus: Bus, path: ObjectPath, callback: MessageCallback) =
+  var packed: PackedMessageCallback
+  new(packed)
+  packed.callback = callback
+  GC_ref packed
+
+  registerObject(bus, path, messageFunc.DBusObjectPathMessageFunction, unregisterFunc, cast[pointer](packed))
