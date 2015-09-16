@@ -7,7 +7,7 @@ type DbusException* = object of Exception
 type DbusRemoteException* = object of DbusException
 
 type Bus* = ref object
-  conn: ptr DBusConnection
+  conn*: ptr DBusConnection
 
 type UniqueBus* = object
   bus*: Bus
