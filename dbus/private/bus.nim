@@ -1,4 +1,5 @@
 export dbus.lowlevel.DBUS_BUS_SESSION
+export dbus.lowlevel.DBUS_BUS_SYSTEM
 
 converter toBool(x: dbus_bool_t): bool = x != 0
 

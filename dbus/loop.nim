@@ -93,3 +93,7 @@ proc tick*(self: ptr MainLoop) =
     while dbus_connection_dispatch(self.conn) == DBUS_DISPATCH_DATA_REMAINS:
       discard
     dbus_connection_unref(self.conn)
+
+proc runForever*(self: ptr MainLoop) =
+  while true:
+    self.tick()

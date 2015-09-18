@@ -1,8 +1,4 @@
-import dbus.listener
-
-dbusInterface "com.zielmicha.Greetable":
-  proc Hello(id: uint32_t): string
-  proc GetName(): string
+import dbus, dbus/loop
 
 type Greeter = ref object
   name: string
@@ -11,23 +7,28 @@ proc newGreeter(): Greeter =
   new(result)
   result.name = "World"
 
-proc SetName(g: Greeter, name: string) {.dbuscall.} =
+proc SetName(g: Greeter, name: string) =
   g.name = name
 
-proc Hello(g: Greeter, id: uint32_t): string {.dbuscall.} =
+proc Hello(g: Greeter, id: uint32_t): string =
   "hello $1 $2" % [id, g.name]
 
-proc GetName(g: Greeter): string # not included in com.zielmicha.Greeter (missing dbuscall)
+proc GetName(g: Greeter): string
   g.name
 
-dbusConcreteInterface "com.zielmicha.Greeter", Greeter
+let greeterDef = dbus.newInterfaceDef(Greeter)
+greeterDef.addMethod(SetName, @[("name", string)])
+# greeterDef.addMethodRaw("SetName", @[("name", "s")], "", proc(obj: Greeter, args: seq[DbusValue]): DbusValue = ...)
+greeterDef.addMethod(Hello, @[("id", uint32_t)], string)
+greeterDef.addMethod(GetName, @[])
 
 when isMainModule:
-  var listener: DBusListener = initListener()
-  var bus = listener.addUniqueBusName(DBUS_SESSION_BUS, "com.zielmicha.Greeting")
-  var greeter = newGreeter()
-  # hm...
-  var obj = bus.addObject[Greeter]("/com/zielmicha/Greeter/0", greeter)
-  # obj is ListeningObject[Greeter]
-  obj.addInterface("com.zielmicha.Greeter")
-  obj.addInterface("com.zielmicha.Greetable")
+  let bus = getBus(dbus.DBUS_BUS_SESSION)
+  let mainLoop = MainLoop.create(bus)
+
+  let greeter = new(Greeter)
+  let greeterObj = dbus.newObjectImpl()
+  greeterObj.addInterface("com.zielmicha.Greeter", greeterDef, greeter)
+
+  bus.requestName("net.networkos.dbustest")
+  bus.registerObject("/net/networkos/dbustest".ObjectPath, greeterObj)
