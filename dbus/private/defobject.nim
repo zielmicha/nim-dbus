@@ -2,7 +2,7 @@
 type
   DbusObjectImpl* = ref object
     interfaceTable: Table[string, MessageCallback]
-    interfaceDefs: seq[XmlNode]
+    interfaceDefs: seq[proc(): XmlNode]
     bus*: Bus
 
 proc newObjectImpl*(bus: Bus): DbusObjectImpl =
@@ -23,6 +23,6 @@ proc registerObject*(bus: Bus, path: ObjectPath, obj: DbusObjectImpl) =
   registerObject(bus, path, call)
 
 proc addInterface*(obj: DbusObjectImpl, name: string,
-                   callback: MessageCallback, xmlDef: XmlNode) =
+                   callback: MessageCallback, xmlDef: (proc(): XmlNode)) =
   obj.interfaceTable[name] = callback
   obj.interfaceDefs.add xmlDef

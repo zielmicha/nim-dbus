@@ -1,6 +1,7 @@
+import sequtils
 
 proc Introspect(obj: DbusObjectImpl): string =
-  return $newXmlTree("node", obj.interfaceDefs)
+  return "<!-- nim-dbus -->" & $newXmlTree("node", map(obj.interfaceDefs, proc(a: auto): XmlNode = a()))
 
 let introspectableDef = newInterfaceDef(DbusObjectImpl)
 introspectableDef.addMethod(Introspect,

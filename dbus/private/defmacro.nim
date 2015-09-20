@@ -45,15 +45,20 @@ macro addMethod*(ifaceDef, funcName, inargs, outargs): stmt =
   let call = newCall(funcName, newIdentNode("obj"))
 
   for i in 0..<inargs.len:
-    let argVal = newBracketExpr(newIdentNode("args"), newIntLitNode(i))
+    let argVal = newCall(newIdentNode("asNative"),
+                         newBracketExpr(newIdentNode("args"), newIntLitNode(i)),
+                         inargs[i][1])
     call.add(argVal)
 
-  let letSection = newNimNode(nnkLetSection)
-  let letDefs = newNimNode(nnkIdentDefs)
-  letDefs.add newIdentNode("ret"), newEmptyNode(), call
-  letSection.add letDefs
+  if outargs.len != 0:
+    let letSection = newNimNode(nnkLetSection)
+    let letDefs = newNimNode(nnkIdentDefs)
+    letDefs.add newIdentNode("ret"), newEmptyNode(), call
+    letSection.add letDefs
 
-  wrapperBody.add letSection
+    wrapperBody.add letSection
+  else:
+    wrapperBody.add call
 
   let returnList = newNimNode(nnkBracket)
 

@@ -61,7 +61,7 @@ proc unpackValueSeq*(incoming: IncomingMessage): seq[DbusValue] =
   result = @[]
   while true:
     result.add iter.unpackCurrent(DbusValue)
-    if dbus_message_iter_next(addr iter.iter) != 0:
+    if dbus_message_iter_next(addr iter.iter) == 0:
       break
 
 proc sendReply*(bus: Bus, incoming: IncomingMessage, args: seq[DbusValue]) =

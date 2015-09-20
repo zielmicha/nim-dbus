@@ -26,6 +26,16 @@ proc parseMethod(item: XmlNode): MethodDef =
       else:
         result.outargs.add(def)
 
+proc argToXml(item: ArgDef, dir: string): XmlNode =
+  newXmlTree("arg", @[], {"name": item.name, "type": item.kind.makeDbusSignature, "direction": dir}.newStringTable)
+
+proc toXml*(item: MethodDef): XmlNode =
+  result = newXmlTree("method", @[], {"name": item.name}.newStringTable)
+  for arg in item.inargs:
+    result.add argToXml(arg, "in")
+  for arg in item.outargs:
+    result.add argToXml(arg, "out")
+
 proc getMethods*(xml: XmlNode): seq[MethodDef] =
   result = @[]
   for item in xml.items:

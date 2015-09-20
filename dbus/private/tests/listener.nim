@@ -9,6 +9,7 @@ proc newGreeter(): Greeter =
 
 proc SetName(g: Greeter, name: string) =
   g.name = name
+  echo "Name set to $1." % name
 
 proc Hello(g: Greeter, id: uint32): string =
   "hello $1 $2" % [$id, g.name]
@@ -22,19 +23,19 @@ proc SetNameWrapper(obj: Greeter, args: seq[DbusValue]): seq[DbusValue] =
   return @[]
 
 let greeterDef = newInterfaceDef(Greeter)
-#greeterDef.addMethod(SetName, [("name", string)])
-greeterDef.addMethodRaw(MethodDef(name: "SetName",
-                                 inargs: @[("name", getAnyDbusType(string))],
-                                 outargs: @[]),
-                        SetNameWrapper)
-#greeterDef.addMethod(Hello, [("id", uint32_t)], [("result", string)])
-#greeterDef.addMethod(GetName, [], [])
+greeterDef.addMethod(SetName, [("name", string)], [])
+#greeterDef.addMethodRaw(MethodDef(name: "SetName",
+#                                 inargs: @[("name", getAnyDbusType(string))],
+#                                 outargs: @[]),
+#                        SetNameWrapper)
+greeterDef.addMethod(Hello, [("id", uint32)], [("salutation", string)])
+greeterDef.addMethod(GetName, [], [("name", string)])
 
 when isMainModule:
   let bus = getBus(dbus.DBUS_BUS_SESSION)
   let mainLoop = MainLoop.create(bus)
 
-  let greeter = new(Greeter)
+  let greeter = newGreeter()
   let greeterObj = newObjectImpl(bus)
   greeterObj.enableIntrospection()
   greeterObj.addInterface("com.zielmicha.Greeter", greeterDef, greeter)
