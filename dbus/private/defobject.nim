@@ -16,6 +16,7 @@ proc registerObject*(bus: Bus, path: ObjectPath, obj: DbusObjectImpl) =
     let function = obj.interfaceTable[incomingMessage.interfaceName]
     echo "call ", incomingMessage.name, " ", incomingMessage.interfaceName
     if function == nil:
+      echo "no such interface"
       return false
     else:
       return function(kind, incomingMessage)

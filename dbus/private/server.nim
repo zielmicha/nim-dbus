@@ -64,6 +64,19 @@ proc unpackValueSeq*(incoming: IncomingMessage): seq[DbusValue] =
     if dbus_message_iter_next(addr iter.iter) == 0:
       break
 
+proc sendReplyTail(bus: Bus, replyMsg: ptr DbusMessage) =
+  let ret = dbus_connection_send(bus.conn, replyMsg, nil)
+  if not bool(ret):
+    raise newException(DbusException, "dbus_connection_send")
+
+  dbus_message_unref(replyMsg)
+  bus.flush()
+
+proc sendErrorReply*(bus: Bus, incoming: IncomingMessage, message: string) =
+  let replyMsg = dbus_message_new_error(incoming.msg, "org.freedesktop.DBus.Error.Failed", message)
+  assert replyMsg != nil
+  sendReplyTail(bus, replyMsg)
+
 proc sendReply*(bus: Bus, incoming: IncomingMessage, args: seq[DbusValue]) =
   let replyMsg = dbus_message_new_method_return(incoming.msg)
   assert replyMsg != nil
@@ -73,12 +86,7 @@ proc sendReply*(bus: Bus, incoming: IncomingMessage, args: seq[DbusValue]) =
   for arg in args:
     (addr iter).append(arg)
 
-  let ret = dbus_connection_send(bus.conn, replyMsg, nil)
-  if not bool(ret):
-    raise newException(DbusException, "dbus_connection_send")
-
-  dbus_message_unref(replyMsg)
-  bus.flush()
+  sendReplyTail(bus, replyMsg)
 
 # VTABLE
 
