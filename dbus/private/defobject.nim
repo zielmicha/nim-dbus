@@ -13,7 +13,7 @@ proc newObjectImpl*(bus: Bus): DbusObjectImpl =
 
 proc registerObject*(bus: Bus, path: ObjectPath, obj: DbusObjectImpl) =
   proc call(kind: IncomingMessageType, incomingMessage: IncomingMessage): bool =
-    let function = obj.interfaceTable[incomingMessage.interfaceName]
+    let function = obj.interfaceTable.getOrDefault(incomingMessage.interfaceName)
     echo "call ", incomingMessage.name, " ", incomingMessage.interfaceName
     if function == nil:
       echo "no such interface"
