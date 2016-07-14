@@ -15,9 +15,15 @@ proc type*(reply: Reply): ReplyType =
 proc errorName*(reply: Reply): string =
   return $dbus_message_get_error_name(reply.msg)
 
+proc errorMessage*(reply: Reply): string =
+  var error: DBusError
+  doAssert(dbus_set_error_from_message(addr error, reply.msg))
+  defer: dbus_error_free(addr error)
+  return $error.message
+
 proc raiseIfError*(reply: Reply) =
   if reply.type == rtError:
-    raise newException(DbusRemoteException, reply.errorName)
+    raise newException(DbusRemoteException, reply.errorName & ": " & reply.errorMessage)
 
 proc waitForReply*(call: PendingCall): Reply =
   call.bus.flush()

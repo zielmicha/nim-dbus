@@ -87,7 +87,8 @@ proc genMethodWrapper*(ifaceName: string, def: MethodDef): string =
 
   result.add "proc $1GetReply*(reply: Reply): $2 =\n" % [def.name, retType]
   result.add "  reply.raiseIfError\n"
-  result.add "  var iter = reply.iterate\n"
+  if def.outargs.len != 0:
+    result.add "  var iter = reply.iterate\n"
   if def.outargs.len == 1:
     result.add "  result = iter.unpackNext($1)\n" % retType
   else:
@@ -108,4 +109,7 @@ proc genMethodWrapper*(ifaceName: string, def: MethodDef): string =
   result.add "  let reply = $1Async(dbusIface, $2).waitForReply()\n" % [
     def.name, argNames.join(", "), retType]
   result.add "  defer: reply.close()\n"
-  result.add "  return $1GetReply(reply)\n" % [def.name]
+  result.add "  "
+  if def.outargs.len != 0:
+    result.add "return "
+  result.add "$1GetReply(reply)\n" % [def.name]
