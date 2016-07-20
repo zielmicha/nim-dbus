@@ -22,8 +22,6 @@ proc newBracketExpr(arr: NimNode, index: NimNode): NimNode {.compileTime.} =
   result.add(index)
 
 macro addMethod*(ifaceDef, funcName, inargs, outargs): stmt =
-  echo "addMethod:"
-
   let methodDef = parseExpr("MethodDef(name: nil, inargs: nil, outargs: nil)")
   methodDef[1][1] = newStrLitNode($funcName)
   methodDef[2][1] = generateArgsDesc(inargs)
@@ -85,4 +83,3 @@ macro addMethod*(ifaceDef, funcName, inargs, outargs): stmt =
 
   result = newCall(newIdentNode("addMethodRaw"),
                                 ifaceDef, methodDef, wrapper)
-  result.repr.echo
