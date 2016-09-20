@@ -1,1 +1,1 @@
-const libdbus* = "libdbus-1.so"
+const libdbus* = "libdbus-1.so.3""
