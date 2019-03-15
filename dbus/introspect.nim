@@ -21,7 +21,7 @@ proc parseMethod(item: XmlNode): MethodDef =
       let kind = parseDbusType(attr.attrs["type"])
       let name = attr.attrs["name"]
       let def: ArgDef = (name: name, kind: kind)
-      if direction == "in" or direction == nil:
+      if direction == "in" or direction.len == 0:
         result.inargs.add(def)
       else:
         result.outargs.add(def)

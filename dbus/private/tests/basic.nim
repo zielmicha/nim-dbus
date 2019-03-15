@@ -1,4 +1,4 @@
-import unsigned, tables
+import tables
 import dbus
 
 let bus = getBus(dbus.DBUS_BUS_SESSION)
@@ -9,8 +9,7 @@ var msg = makeCall("com.zielmicha.test",
 
 msg.append(uint32(6))
 msg.append("hello")
-msg.append(uint32(1))
-msg.append(uint32(1))
+msg.append(1'i32)
 msg.append("hello".asDbusValue)
 msg.append(@["a", "b"])
 msg.append({"a": "b"}.toTable)

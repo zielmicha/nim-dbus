@@ -1,4 +1,4 @@
 
-type DbusIfaceWrapper* = object {.inheritable.}
+type DbusIfaceWrapper* {.inheritable.} = object
   uniqueBus*: UniqueBus
   path*: ObjectPath

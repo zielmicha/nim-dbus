@@ -13,7 +13,7 @@ proc generateArgsDesc(args: NimNode): NimNode {.compileTime.} =
     infoTuple.add newCall(newIdentNode("getAnyDbusType"), arg[1])
     body.add infoTuple
   result = newNimNode(nnkPrefix)
-  result.add(newIdentNode(!"@"))
+  result.add(newIdentNode("@"))
   result.add(body)
 
 proc newBracketExpr(arr: NimNode, index: NimNode): NimNode {.compileTime.} =
@@ -21,7 +21,7 @@ proc newBracketExpr(arr: NimNode, index: NimNode): NimNode {.compileTime.} =
   result.add(arr)
   result.add(index)
 
-macro addMethod*(ifaceDef, funcName, inargs, outargs): stmt =
+macro addMethod*(ifaceDef, funcName, inargs, outargs): untyped =
   let methodDef = parseExpr("MethodDef(name: nil, inargs: nil, outargs: nil)")
   methodDef[1][1] = newStrLitNode($funcName)
   methodDef[2][1] = generateArgsDesc(inargs)
@@ -70,7 +70,7 @@ macro addMethod*(ifaceDef, funcName, inargs, outargs): stmt =
     returnList.add newCall(newIdentNode("asDbusValue"), val)
 
   let returnExpr = newNimNode(nnkPrefix)
-  returnExpr.add newIdentNode(!"@")
+  returnExpr.add newIdentNode("@")
   returnExpr.add returnList
 
   let returnStmt = newNimNode(nnkReturnStmt)

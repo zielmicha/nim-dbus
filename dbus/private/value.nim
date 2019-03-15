@@ -3,8 +3,6 @@ import tables
 type
   FD* = cint
 
-  DictEntry = tuple[key: DbusValue, value: DbusValue]
-
   DbusValue* = ref object
     case kind: DbusTypeChar:
       of dtArray:
@@ -12,10 +10,8 @@ type
         arrayValue*: seq[DbusValue]
       of dtBool:
         boolValue*: bool
-      of dtDict:
-        dictKeyType*: DbusType
-        dictValueType*: DbusType
-        dictValue*: seq[DictEntry]
+      of dtDictEntry:
+        dictKey*, dictValue*: DbusValue
       of dtDouble:
         doubleValue*: float64
       of dtSignature:
@@ -42,6 +38,9 @@ type
         int64Value*: int64
       of dtByte:
         byteValue*: uint8
+      of dtVariant:
+        variantType*: DbusType
+        variantValue*: DbusValue
       else:
         discard
 
@@ -90,6 +89,12 @@ proc createScalarDbusValue(kind: DbusTypeChar): tuple[value: DbusValue, scalarPt
   new(result.value)
   result.value.kind = kind
   result.scalarPtr = getPrimitive(result.value)
+
+proc createDictEntryDbusValue(key, val: DbusValue): DbusValue =
+  new(result)
+  result.kind = dtDictEntry
+  result.dictKey = key
+  result.dictValue = val
 
 proc asDbusValue*(val: bool): DbusValue =
   new(result)
@@ -161,12 +166,20 @@ proc asDbusValue*[T](val: seq[T]): DbusValue =
 
 proc asDbusValue*[K, V](val: Table[K, V]): DbusValue =
   new(result)
-  result.kind = dtDict
-  result.dictValue = @[]
-  result.dictKeyType = getDbusType(K)
-  result.dictValueType = getDbusType(V)
+  result.kind = dtArray
+  result.arrayValue = @[]
+  result.arrayValueType = DbusType(kind: dtDictEntry,
+                                   keyType: getAnyDbusType(K),
+                                   valueType: getAnyDbusType(V))
   for k, v in val:
-    result.dictValue.add((k.asDbusValue,  v.asDbusValue))
+    result.arrayValue.add(
+      createDictEntryDbusValue(asDbusValue(k), asDbusValue(v)))
+
+proc asDbusValue*[T](val: Variant[T]): DbusValue =
+  new(result)
+  result.kind = dtVariant
+  result.variantType = getDbusType(T)
+  result.variantValue = asDbusValue(val.value)
 
 proc asNative*(value: DbusValue, native: typedesc[bool]): bool =
   value.boolValue

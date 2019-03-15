@@ -1,10 +1,11 @@
-[Package]
-name          = "dbus"
+# Package
+
 version       = "0.0.1"
 author        = "Michał Zieliński <michal@zielinscy.org.pl>"
 description   = "dbus bindings for Nim"
 license       = "MIT"
 
-[Deps]
-Requires: "nim >= 0.11.2"
-Requires: "c2nim"
+# Dependecies
+
+requires "nim >= 0.19.0"
+requires "c2nim"

@@ -3,6 +3,11 @@ import strutils, tables
 type ObjectPath* = distinct string
 type Signature* = distinct string
 
+type Variant[T] = object
+  value: T
+
+proc newVariant*[T](val: T): Variant[T] = Variant[T](value: val)
+
 type DbusTypeChar* = enum
   dtNull = '\0', # workaround for Nim bug #3096
   dtArray = 'a',
@@ -26,22 +31,25 @@ type DbusTypeChar* = enum
 
 const dbusScalarTypes = {dtBool, dtDouble, dtInt32, dtInt16, dtUint16, dtUint64, dtUint32, dtInt64, dtByte}
 const dbusStringTypes = {dtString, dtObjectPath, dtSignature}
+const dbusContainerTypes = {dtArray, dtStruct, dtDict, dtDictEntry, dtVariant}
 
 type DbusType* = ref object
   case kind*: DbusTypeChar
   of dtArray:
     itemType*: DbusType
-  of dtDict:
+  of dtDictEntry:
     keyType*: DbusType
     valueType*: DbusType
   of dtStruct:
     itemTypes*: seq[DbusType]
+  of dtVariant:
+    variantType*: DbusType
   else:
     discard
 
 converter fromScalar*(ch: DbusTypeChar): DbusType =
   new(result)
-  assert ch notin {dtArray, dtStruct}
+  assert ch notin dbusContainerTypes
   result.kind = ch
 
 proc initArrayType*(itemType: DbusType): DbusType =
@@ -49,9 +57,10 @@ proc initArrayType*(itemType: DbusType): DbusType =
   result.kind = dtArray
   result.itemType = itemType
 
-proc initDictType*(keyType: DbusType, valueType: DbusType): DbusType =
+proc initDictEntryType*(keyType: DbusType, valueType: DbusType): DbusType =
+  doAssert keyType.kind in dbusContainerTypes
   new(result)
-  result.kind = dtDict
+  result.kind = dtDictEntry
   result.keyType = keyType
   result.valueType = valueType
 
@@ -59,6 +68,11 @@ proc initStructType*(itemTypes: seq[DbusType]): DbusType =
   new(result)
   result.kind = dtStruct
   result.itemTypes = itemTypes
+
+proc initVariantType*(variantType: DbusType): DbusType =
+  new(result)
+  result.kind = dtVariant
+  result.variantType = variantType
 
 proc parseDbusFragment(signature: string): tuple[kind: DbusType, rest: string] =
   case signature[0]:
@@ -69,7 +83,7 @@ proc parseDbusFragment(signature: string): tuple[kind: DbusType, rest: string] =
       let keyRet = parseDbusFragment(signature[1..^1])
       let valueRet = parseDbusFragment(keyRet.rest)
       assert valueRet.rest[0] == "}"[0]
-      return (initDictType(keyRet.kind, valueRet.kind), valueRet.rest[1..^1])
+      return (initDictEntryType(keyRet.kind, valueRet.kind), valueRet.rest[1..^1])
     of '(':
       var left = signature[1..^1]
       var types: seq[DbusType] = @[]
@@ -91,17 +105,20 @@ proc parseDbusType*(signature: string): DbusType =
 proc makeDbusSignature*(kind: DbusType): string =
   case kind.kind:
     of dtArray:
-      "a" & makeDbusSignature(kind.itemType)
-    of dtStruct:
-      "{" & makeDbusSignature(kind.keyType) & makeDbusSignature(kind.valueType) & "}"
+      result = "a" & makeDbusSignature(kind.itemType)
+    of dtDictEntry:
+      result = "{" & makeDbusSignature(kind.keyType) & makeDbusSignature(kind.valueType) & "}"
     else:
-      $(kind.kind.char)
+      result = $(kind.kind.char)
 
 proc getDbusType(native: typedesc[uint32]): DbusType =
   dtUint32
 
 proc getDbusType(native: typedesc[uint16]): DbusType =
   dtUint16
+
+proc getDbusType(native: typedesc[uint8]): DbusType =
+  dtByte
 
 proc getDbusType(native: typedesc[int32]): DbusType =
   dtInt32
@@ -111,6 +128,9 @@ proc getDbusType(native: typedesc[int16]): DbusType =
 
 proc getDbusType(native: typedesc[cstring]): DbusType =
   dtString
+
+proc getDbusType[T](native: typedesc[Variant[T]]): DbusType =
+  initVariantType(getDbusType(T))
 
 proc getAnyDbusType*[T](native: typedesc[T]): DbusType =
   getDbusType(native)
