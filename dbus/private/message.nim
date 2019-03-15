@@ -66,6 +66,15 @@ proc appendDictEntry(iter: ptr DbusMessageIter, key, val: DbusValue) =
   if dbus_message_iter_close_container(iter, subIterPtr) == 0:
     raise newException(DbusException, "close_container")
 
+proc appendVariant(iter: ptr DbusMessageIter, sig: string, val: DbusValue) =
+  var subIter: DbusMessageIter
+  var subIterPtr = addr subIter
+  if dbus_message_iter_open_container(iter, cint(dtVariant), sig, subIterPtr) == 0:
+    raise newException(DbusException, "open_container")
+  subIterPtr.append(val)
+  if dbus_message_iter_close_container(iter, subIterPtr) == 0:
+    raise newException(DbusException, "close_container")
+
 proc append(iter: ptr DbusMessageIter, x: DbusValue) =
   var myX = x
   case x.kind:
@@ -73,12 +82,14 @@ proc append(iter: ptr DbusMessageIter, x: DbusValue) =
       iter.appendPtr(x.kind, myX.getPrimitive)
     of dbusStringTypes:
       # dbus_message_iter_append_basic copies its argument, so this is safe
-      var str: cstring = x.getString.cstring
+      var str = x.getString.cstring
       iter.appendPtr(x.kind, addr str)
     of dtArray:
       iter.appendArray(x.arrayValueType.makeDbusSignature, x.arrayValue)
     of dtDictEntry:
       iter.appendDictEntry(x.dictKey, x.dictValue)
+    of dtVariant:
+      iter.appendVariant(x.variantType.makeDbusSignature, x.variantValue)
     else:
       raise newException(ValueError, "not serializable")
 

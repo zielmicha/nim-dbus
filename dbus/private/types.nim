@@ -3,6 +3,11 @@ import strutils, tables
 type ObjectPath* = distinct string
 type Signature* = distinct string
 
+type Variant[T] = object
+  value: T
+
+proc newVariant*[T](val: T): Variant[T] = Variant[T](value: val)
+
 type DbusTypeChar* = enum
   dtNull = '\0', # workaround for Nim bug #3096
   dtArray = 'a',
@@ -26,7 +31,7 @@ type DbusTypeChar* = enum
 
 const dbusScalarTypes = {dtBool, dtDouble, dtInt32, dtInt16, dtUint16, dtUint64, dtUint32, dtInt64, dtByte}
 const dbusStringTypes = {dtString, dtObjectPath, dtSignature}
-const dbusContainerTypes = {dtArray, dtStruct, dtDict, dtDictEntry}
+const dbusContainerTypes = {dtArray, dtStruct, dtDict, dtDictEntry, dtVariant}
 
 type DbusType* = ref object
   case kind*: DbusTypeChar
@@ -37,6 +42,8 @@ type DbusType* = ref object
     valueType*: DbusType
   of dtStruct:
     itemTypes*: seq[DbusType]
+  of dtVariant:
+    variantType*: DbusType
   else:
     discard
 
@@ -61,6 +68,11 @@ proc initStructType*(itemTypes: seq[DbusType]): DbusType =
   new(result)
   result.kind = dtStruct
   result.itemTypes = itemTypes
+
+proc initVariantType*(variantType: DbusType): DbusType =
+  new(result)
+  result.kind = dtVariant
+  result.variantType = variantType
 
 proc parseDbusFragment(signature: string): tuple[kind: DbusType, rest: string] =
   case signature[0]:
@@ -105,6 +117,9 @@ proc getDbusType(native: typedesc[uint32]): DbusType =
 proc getDbusType(native: typedesc[uint16]): DbusType =
   dtUint16
 
+proc getDbusType(native: typedesc[uint8]): DbusType =
+  dtByte
+
 proc getDbusType(native: typedesc[int32]): DbusType =
   dtInt32
 
@@ -113,6 +128,9 @@ proc getDbusType(native: typedesc[int16]): DbusType =
 
 proc getDbusType(native: typedesc[cstring]): DbusType =
   dtString
+
+proc getDbusType[T](native: typedesc[Variant[T]]): DbusType =
+  initVariantType(getDbusType(T))
 
 proc getAnyDbusType*[T](native: typedesc[T]): DbusType =
   getDbusType(native)

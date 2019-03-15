@@ -38,6 +38,9 @@ type
         int64Value*: int64
       of dtByte:
         byteValue*: uint8
+      of dtVariant:
+        variantType*: DbusType
+        variantValue*: DbusValue
       else:
         discard
 
@@ -171,6 +174,12 @@ proc asDbusValue*[K, V](val: Table[K, V]): DbusValue =
   for k, v in val:
     result.arrayValue.add(
       createDictEntryDbusValue(asDbusValue(k), asDbusValue(v)))
+
+proc asDbusValue*[T](val: Variant[T]): DbusValue =
+  new(result)
+  result.kind = dtVariant
+  result.variantType = getDbusType(T)
+  result.variantValue = asDbusValue(val.value)
 
 proc asNative*(value: DbusValue, native: typedesc[bool]): bool =
   value.boolValue
