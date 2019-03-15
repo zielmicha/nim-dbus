@@ -386,7 +386,7 @@ type
 # 
 
 type 
-  DBusBasicValue* = object  {.union.}
+  DBusBasicValue* {.union.} = object
     bytes*: array[8, cuchar]  #*< as 8 individual bytes 
     i16*: dbus_int16_t        #*< as int16 
     u16*: dbus_uint16_t       #*< as int16 
@@ -1099,8 +1099,6 @@ type
   
 
 #* Opaque type representing a message iterator. Can be copied by value, and contains no allocated memory so never needs to be freed and can be allocated on the stack. 
-
-nil
 
 #*
 #  DBusMessageIter struct; contains no public fields.
