@@ -26,12 +26,13 @@ type DbusTypeChar* = enum
 
 const dbusScalarTypes = {dtBool, dtDouble, dtInt32, dtInt16, dtUint16, dtUint64, dtUint32, dtInt64, dtByte}
 const dbusStringTypes = {dtString, dtObjectPath, dtSignature}
+const dbusContainerTypes = {dtArray, dtStruct, dtDict, dtDictEntry}
 
 type DbusType* = ref object
   case kind*: DbusTypeChar
   of dtArray:
     itemType*: DbusType
-  of dtDict:
+  of dtDictEntry:
     keyType*: DbusType
     valueType*: DbusType
   of dtStruct:
@@ -41,7 +42,7 @@ type DbusType* = ref object
 
 converter fromScalar*(ch: DbusTypeChar): DbusType =
   new(result)
-  assert ch notin {dtArray, dtStruct}
+  assert ch notin dbusContainerTypes
   result.kind = ch
 
 proc initArrayType*(itemType: DbusType): DbusType =
@@ -49,9 +50,10 @@ proc initArrayType*(itemType: DbusType): DbusType =
   result.kind = dtArray
   result.itemType = itemType
 
-proc initDictType*(keyType: DbusType, valueType: DbusType): DbusType =
+proc initDictEntryType*(keyType: DbusType, valueType: DbusType): DbusType =
+  doAssert keyType.kind in dbusContainerTypes
   new(result)
-  result.kind = dtDict
+  result.kind = dtDictEntry
   result.keyType = keyType
   result.valueType = valueType
 
@@ -69,7 +71,7 @@ proc parseDbusFragment(signature: string): tuple[kind: DbusType, rest: string] =
       let keyRet = parseDbusFragment(signature[1..^1])
       let valueRet = parseDbusFragment(keyRet.rest)
       assert valueRet.rest[0] == "}"[0]
-      return (initDictType(keyRet.kind, valueRet.kind), valueRet.rest[1..^1])
+      return (initDictEntryType(keyRet.kind, valueRet.kind), valueRet.rest[1..^1])
     of '(':
       var left = signature[1..^1]
       var types: seq[DbusType] = @[]
@@ -91,11 +93,11 @@ proc parseDbusType*(signature: string): DbusType =
 proc makeDbusSignature*(kind: DbusType): string =
   case kind.kind:
     of dtArray:
-      "a" & makeDbusSignature(kind.itemType)
-    of dtStruct:
-      "{" & makeDbusSignature(kind.keyType) & makeDbusSignature(kind.valueType) & "}"
+      result = "a" & makeDbusSignature(kind.itemType)
+    of dtDictEntry:
+      result = "{" & makeDbusSignature(kind.keyType) & makeDbusSignature(kind.valueType) & "}"
     else:
-      $(kind.kind.char)
+      result = $(kind.kind.char)
 
 proc getDbusType(native: typedesc[uint32]): DbusType =
   dtUint32

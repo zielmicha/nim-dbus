@@ -48,11 +48,22 @@ proc appendPrimitive[T](iter: ptr DbusMessageIter, kind: DbusType, x: T) =
 
 proc appendArray(iter: ptr DbusMessageIter, sig: string, arr: openarray[DbusValue]) =
   var subIter: DBusMessageIter
-  if dbus_message_iter_open_container(iter, cint(dtArray), cstring(sig), addr subIter) == 0:
+  var subIterPtr = addr subIter
+  if dbus_message_iter_open_container(iter, cint(dtArray), cstring(sig), subIterPtr) == 0:
     raise newException(DbusException, "open_container")
   for item in arr:
-    (addr subIter).append(item)
-  if dbus_message_iter_close_container(iter, addr subIter) == 0:
+    subIterPtr.append(item)
+  if dbus_message_iter_close_container(iter, subIterPtr) == 0:
+    raise newException(DbusException, "close_container")
+
+proc appendDictEntry(iter: ptr DbusMessageIter, key, val: DbusValue) =
+  var subIter: DbusMessageIter
+  var subIterPtr = addr subIter
+  if dbus_message_iter_open_container(iter, cint(dtDictEntry), nil, subIterPtr) == 0:
+    raise newException(DbusException, "open_container")
+  subIterPtr.append(key)
+  subIterPtr.append(val)
+  if dbus_message_iter_close_container(iter, subIterPtr) == 0:
     raise newException(DbusException, "close_container")
 
 proc append(iter: ptr DbusMessageIter, x: DbusValue) =
@@ -66,8 +77,8 @@ proc append(iter: ptr DbusMessageIter, x: DbusValue) =
       iter.appendPtr(x.kind, addr str)
     of dtArray:
       iter.appendArray(x.arrayValueType.makeDbusSignature, x.arrayValue)
-    of dtDict:
-      discard
+    of dtDictEntry:
+      iter.appendDictEntry(x.dictKey, x.dictValue)
     else:
       raise newException(ValueError, "not serializable")
 
