@@ -91,83 +91,52 @@ proc createScalarDbusValue(kind: DbusTypeChar): tuple[value: DbusValue, scalarPt
   result.scalarPtr = getPrimitive(result.value)
 
 proc createDictEntryDbusValue(key, val: DbusValue): DbusValue =
-  new(result)
-  result.kind = dtDictEntry
-  result.dictKey = key
-  result.dictValue = val
+  result = DbusValue(kind: dtDictEntry, dictKey: key, dictValue: val)
 
 proc asDbusValue*(val: bool): DbusValue =
-  new(result)
-  result.kind = dtBool
-  result.boolValue = val
+  result = DbusValue(kind: dtBool, boolValue: val)
 
 proc asDbusValue*(val: float64): DbusValue =
-  new(result)
-  result.kind = dtDouble
-  result.doubleValue = val
+  result = DbusValue(kind: dtDouble, doubleValue: val)
 
 proc asDbusValue*(val: int16): DbusValue =
-  new(result)
-  result.kind = dtInt16
-  result.int16Value = val
+  result = DbusValue(kind: dtInt16, int16Value: val)
 
 proc asDbusValue*(val: int32): DbusValue =
-  new(result)
-  result.kind = dtInt32
-  result.int32Value = val
+  result = DbusValue(kind: dtInt32, int32Value: val)
 
 proc asDbusValue*(val: int64): DbusValue =
-  new(result)
-  result.kind = dtInt64
-  result.int64Value = val
+  result = DbusValue(kind: dtInt64, int64Value: val)
 
 proc asDbusValue*(val: uint16): DbusValue =
-  new(result)
-  result.kind = dtUint16
-  result.uint16Value = val
+  result = DbusValue(kind: dtUint16, uint16Value: val)
 
 proc asDbusValue*(val: uint32): DbusValue =
-  new(result)
-  result.kind = dtUint32
-  result.uint32Value = val
+  result = DbusValue(kind: dtUint32, uint32Value: val)
 
 proc asDbusValue*(val: uint64): DbusValue =
-  new(result)
-  result.kind = dtUint64
-  result.uint64Value = val
+  result = DbusValue(kind: dtUint64, uint64Value: val)
 
 proc asDbusValue*(val: uint8): DbusValue =
-  new(result)
-  result.kind = dtByte
-  result.byteValue = val
+  result = DbusValue(kind: dtByte, byteValue: val)
 
 proc asDbusValue*(val: string): DbusValue =
-  new(result)
-  result.kind = dtString
-  result.stringValue = val
+  result = DbusValue(kind: dtString, stringValue: val)
 
 proc asDbusValue*(val: ObjectPath): DbusValue =
-  new(result)
-  result.kind = dtString
-  result.objectPathValue = val
+  result = DbusValue(kind: dtObjectPath, objectPathValue: val)
 
 proc asDbusValue*(val: Signature): DbusValue =
-  new(result)
-  result.kind = dtSignature
-  result.signatureValue = val
+  result = DbusValue(kind: dtSignature, signatureValue: val)
 
 proc asDbusValue*[T](val: seq[T]): DbusValue =
-  new(result)
-  result.kind = dtArray
-  result.arrayValue = @[]
+  result = DbusValue(kind: dtArray, arrayValue: @[])
   result.arrayValueType = getDbusType(T)
   for x in val:
     result.arrayValue.add x.asDbusValue
 
 proc asDbusValue*[K, V](val: Table[K, V]): DbusValue =
-  new(result)
-  result.kind = dtArray
-  result.arrayValue = @[]
+  result = DbusValue(kind: dtArray, arrayValue: @[])
   result.arrayValueType = DbusType(kind: dtDictEntry,
                                    keyType: getAnyDbusType(K),
                                    valueType: getAnyDbusType(V))
@@ -176,10 +145,8 @@ proc asDbusValue*[K, V](val: Table[K, V]): DbusValue =
       createDictEntryDbusValue(asDbusValue(k), asDbusValue(v)))
 
 proc asDbusValue*[T](val: Variant[T]): DbusValue =
-  new(result)
-  result.kind = dtVariant
-  result.variantType = getDbusType(T)
-  result.variantValue = asDbusValue(val.value)
+  result = DbusValue(kind: dtVariant,
+    variantType: getDbusType(T), variantValue: asDbusValue(val.value))
 
 proc asNative*(value: DbusValue, native: typedesc[bool]): bool =
   value.boolValue

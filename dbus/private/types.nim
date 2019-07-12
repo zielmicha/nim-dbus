@@ -48,31 +48,21 @@ type DbusType* = ref object
     discard
 
 converter fromScalar*(ch: DbusTypeChar): DbusType =
-  new(result)
   assert ch notin dbusContainerTypes
-  result.kind = ch
+  result = DbusType(kind: ch)
 
 proc initArrayType*(itemType: DbusType): DbusType =
-  new(result)
-  result.kind = dtArray
-  result.itemType = itemType
+  result = DbusType(kind: dtArray, itemType: itemType)
 
 proc initDictEntryType*(keyType: DbusType, valueType: DbusType): DbusType =
   doAssert keyType.kind in dbusContainerTypes
-  new(result)
-  result.kind = dtDictEntry
-  result.keyType = keyType
-  result.valueType = valueType
+  result = DbusType(kind: dtDictEntry, keyType: keyType, valueType: valueType)
 
 proc initStructType*(itemTypes: seq[DbusType]): DbusType =
-  new(result)
-  result.kind = dtStruct
-  result.itemTypes = itemTypes
+  result = DbusType(kind: dtStruct, itemTypes: itemTypes)
 
 proc initVariantType*(variantType: DbusType): DbusType =
-  new(result)
-  result.kind = dtVariant
-  result.variantType = variantType
+  result = DbusType(kind: dtVariant, variantType: variantType)
 
 proc parseDbusFragment(signature: string): tuple[kind: DbusType, rest: string] =
   case signature[0]:
