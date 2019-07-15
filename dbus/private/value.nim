@@ -81,14 +81,12 @@ proc getString(val: DbusValue): var string =
       raise newException(ValueError, "value is not string")
 
 proc createStringDbusValue(kind: DbusTypeChar, val: string): DbusValue =
-  new(result)
-  result.kind = kind
+  result = DbusValue(kind: kind)
   getString(result) = val
 
 proc createScalarDbusValue(kind: DbusTypeChar): tuple[value: DbusValue, scalarPtr: pointer] =
-  new(result.value)
-  result.value.kind = kind
-  result.scalarPtr = getPrimitive(result.value)
+  var value = DBusValue(kind: kind)
+  result = (value, getPrimitive(value))
 
 proc createDictEntryDbusValue(key, val: DbusValue): DbusValue =
   result = DbusValue(kind: dtDictEntry, dictKey: key, dictValue: val)
