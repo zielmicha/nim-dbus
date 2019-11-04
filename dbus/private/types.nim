@@ -3,7 +3,7 @@ import strutils, tables
 type ObjectPath* = distinct string
 type Signature* = distinct string
 
-type Variant[T] = object
+type Variant*[T] = object
   value: T
 
 proc newVariant*[T](val: T): Variant[T] = Variant[T](value: val)
