@@ -74,7 +74,7 @@ proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue
     var subiter = iter.subIterate()
     return subiter.unpackCurrent(native)
   else:
-    raise newException(DbusException, "not supported")
+    raise newException(DbusException, "nim-dbus does not support unpacking " & $kind)
 
 proc unpackCurrent*[T](iter: var InputIter, native: typedesc[T]): T =
   unpackCurrent(iter, DbusValue).asNative(native)
