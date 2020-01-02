@@ -1,4 +1,4 @@
-from gi.repository import Gtk
+from gi.repository import GLib
 import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
@@ -19,4 +19,6 @@ class MyDBUSService(dbus.service.Object):
 
 DBusGMainLoop(set_as_default=True)
 myservice = MyDBUSService()
-Gtk.main()
+
+loop = GLib.MainLoop()
+loop.run()

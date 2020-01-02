@@ -53,6 +53,10 @@ proc ensureEnd*(iter: var InputIter) =
   if dbus_message_iter_next(addr iter.iter) != 0:
     raise newException(DbusException, "got more arguments than expected")
 
+proc subIterate*(iter: var InputIter): InputIter =
+  # from https://leonardoce.wordpress.com/2015/03/17/dbus-tutorial-part-3/
+  dbus_message_iter_recurse(addr iter.iter, addr result.iter)
+
 proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue =
   let kind = dbus_message_iter_get_arg_type(addr iter.iter).DbusTypeChar
   case kind:
@@ -66,6 +70,9 @@ proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue
     var s: cstring
     dbus_message_iter_get_basic(addr iter.iter, addr s)
     return createStringDbusValue(kind, $s)
+  of dtVariant:
+    var subiter = iter.subIterate()
+    return subiter.unpackCurrent(native)
   else:
     raise newException(DbusException, "not supported")
 

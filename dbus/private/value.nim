@@ -4,7 +4,7 @@ type
   FD* = cint
 
   DbusValue* = ref object
-    case kind: DbusTypeChar:
+    case kind*: DbusTypeChar:
       of dtArray:
         arrayValueType*: DbusType
         arrayValue*: seq[DbusValue]
