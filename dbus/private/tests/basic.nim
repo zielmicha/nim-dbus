@@ -13,6 +13,8 @@ msg.append(1'i32)
 msg.append("hello".asDbusValue)
 msg.append(@["a", "b"])
 msg.append({"a": "b"}.toTable)
+msg.append(ObjectPath("/a"))
+msg.append(@[ObjectPath("/b")])
 
 let pending = bus.sendMessageWithReply(msg)
 

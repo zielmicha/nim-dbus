@@ -119,6 +119,9 @@ proc getDbusType(native: typedesc[int16]): DbusType =
 proc getDbusType(native: typedesc[cstring]): DbusType =
   dtString
 
+proc getDbusType(native: typedesc[ObjectPath]): DbusType =
+  dtObjectPath
+
 proc getDbusType[T](native: typedesc[Variant[T]]): DbusType =
   initVariantType(getDbusType(T))
 
@@ -127,6 +130,9 @@ proc getAnyDbusType*[T](native: typedesc[T]): DbusType =
 
 proc getAnyDbusType*(native: typedesc[string]): DbusType =
   getDbusType(cstring)
+
+proc getAnyDbusType*(native: typedesc[ObjectPath]): DbusType =
+  getDbusType(ObjectPath)
 
 proc getAnyDbusType*[T](native: typedesc[seq[T]]): DbusType =
   initArrayType(getDbusType(T))
