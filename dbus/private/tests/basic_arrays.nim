@@ -1,4 +1,3 @@
-import tables
 import dbus
 
 let bus = getBus(dbus.DBUS_BUS_SESSION)
@@ -7,17 +6,9 @@ var msg = makeCall("com.zielmicha.test",
              "com.zielmicha.test",
              "hello")
 
-msg.append(uint32(6))
-msg.append("hello")
-msg.append(1'i32)
-msg.append("hello".asDbusValue)
-msg.append(@["a", "b"])
-msg.append({"a": "b"}.toTable)
-msg.append(ObjectPath("/a"))
-msg.append(@[ObjectPath("/b")])
+msg.append(@["a","b"])
 
 let pending = bus.sendMessageWithReply(msg)
-
 let reply = pending.waitForReply()
 reply.raiseIfError()
 
@@ -25,4 +16,10 @@ var it = reply.iterate
 let v = it.unpackCurrent(DbusValue)
 assert v.asNative(string) == "Hello, world!"
 it.advanceIter
-assert it.unpackCurrent(uint32) == 6
+let val = it.unpackCurrent(DbusValue)
+assert val.kind == dtArray
+echo val.arrayValue.repr
+assert val.arrayValue[0].asNative(string) == "a"
+assert val.arrayValue[1].asNative(string) == "b"
+
+

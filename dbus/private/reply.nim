@@ -73,8 +73,17 @@ proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue
   of dtVariant:
     var subiter = iter.subIterate()
     return subiter.unpackCurrent(native)
+  of dtArray:
+    var subiter = iter.subIterate()
+    let subkind = dbus_message_iter_get_arg_type(addr subiter.iter).DbusTypeChar
+    var values:seq[DbusValue]
+    values.add(subiter.unpackCurrent(native))
+    while dbus_message_iter_has_next(addr subiter.iter) != 0:
+      subiter.advanceIter()
+      values.add(subiter.unpackCurrent(native))
+    return DbusValue(kind: dtArray, arrayValueType: subkind, arrayValue: values)
   else:
-    raise newException(DbusException, "not supported")
+    raise newException(DbusException, "nim-dbus does not support unpacking " & $kind)
 
 proc unpackCurrent*[T](iter: var InputIter, native: typedesc[T]): T =
   unpackCurrent(iter, DbusValue).asNative(native)
