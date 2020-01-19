@@ -1,4 +1,4 @@
-import dbus, tables
+import dbus
 type ComZielmichaTestRemote* = object of DbusIfaceWrapper
 
 proc get*(wrapperType: typedesc[ComZielmichaTestRemote], uniqueBus: UniqueBus, path: ObjectPath): ComZielmichaTestRemote =

@@ -75,6 +75,16 @@ proc appendVariant(iter: ptr DbusMessageIter, sig: string, val: DbusValue) =
   if dbus_message_iter_close_container(iter, subIterPtr) == 0:
     raise newException(DbusException, "close_container")
 
+proc appendStruct(iter: ptr DbusMessageIter, arr: openarray[DbusValue]) =
+  var subIter: DbusMessageIter
+  var subIterPtr = addr subIter
+  if dbus_message_iter_open_container(iter, cint(dtStruct), nil, subIterPtr) == 0:
+    raise newException(DbusException, "open_container")
+  for item in arr:
+    subIterPtr.append(item)
+  if dbus_message_iter_close_container(iter, subIterPtr) == 0:
+    raise newException(DbusException, "close_container")
+
 proc append(iter: ptr DbusMessageIter, x: DbusValue) =
   var myX = x
   case x.kind:
@@ -90,6 +100,8 @@ proc append(iter: ptr DbusMessageIter, x: DbusValue) =
       iter.appendDictEntry(x.dictKey, x.dictValue)
     of dtVariant:
       iter.appendVariant(x.variantType.makeDbusSignature, x.variantValue)
+    of dtStruct:
+      iter.appendStruct(x.structValues)
     else:
       raise newException(ValueError, "not serializable")
 
