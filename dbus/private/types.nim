@@ -48,7 +48,7 @@ type DbusType* = ref object
     discard
 
 converter fromScalar*(ch: DbusTypeChar): DbusType =
-  assert ch notin dbusContainerTypes
+  # assert ch notin dbusContainerTypes
   DbusType(kind: ch)
 
 proc initArrayType*(itemType: DbusType): DbusType =

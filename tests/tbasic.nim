@@ -84,6 +84,15 @@ test "struct":
   assert val.structValues[0].asNative(string) == "hi"
   assert val.structValues[1].asNative(uint32) == 2
 
+test "tables":
+  let val = testEcho({"a":"b"}.toTable())
+  assert val.kind == dtArray
+  assert val.arrayValueType.kind == dtDictEntry
+  # assert val.arrayValueType.keyType.kind == dtString
+  # assert val.arrayValueType.valueType.kind == dtString
+  assert val.arrayValue[0].dictKey.asNative(string) == "a"
+  assert val.arrayValue[0].dictValue.asNative(string) == "b"
+
 test "notify":
   let bus = getBus(DBUS_BUS_SESSION)
   var msg = makeCall("org.freedesktop.Notifications",
