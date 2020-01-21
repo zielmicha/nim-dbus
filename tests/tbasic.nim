@@ -88,10 +88,39 @@ test "tables":
   let val = testEcho({"a":"b"}.toTable())
   assert val.kind == dtArray
   assert val.arrayValueType.kind == dtDictEntry
-  # assert val.arrayValueType.keyType.kind == dtString
-  # assert val.arrayValueType.valueType.kind == dtString
   assert val.arrayValue[0].dictKey.asNative(string) == "a"
   assert val.arrayValue[0].dictValue.asNative(string) == "b"
+
+test "tables nested":
+  let val = testEcho({
+    "a": newVariant({
+      "c":"d"
+    }.toTable())
+  }.toTable())
+  assert val.kind == dtArray
+  assert val.arrayValue[0].dictKey.asNative(string) == "a"
+  assert val.arrayValue[0].dictValue.arrayValue[0].dictKey.asNative(string) == "c"
+  assert val.arrayValue[0].dictValue.arrayValue[0].dictValue.asNative(string) == "d"
+
+test "tables mixed variant":
+  let var1 = newVariant("foo").asDbusValue()
+  let var2 = newVariant(12.uint32).asDbusValue()
+  var dict = DbusValue(
+    kind: dtArray,
+    arrayValueType: DbusType(
+      kind: dtDictEntry,
+      keyType: dtString,
+      valueType: dtVariant,
+    )
+  )
+  dict.add("a".asDbusValue(), var1)
+  dict.add("b".asDbusValue(), var2)
+  let val = testEcho(dict)
+  assert val.kind == dtArray
+  assert val.arrayValue[0].dictKey.asNative(string) == "a"
+  assert val.arrayValue[0].dictValue.asNative(string) == "foo"
+  assert val.arrayValue[1].dictKey.asNative(string) == "b"
+  assert val.arrayValue[1].dictValue.asNative(uint32) == 12
 
 test "notify":
   let bus = getBus(DBUS_BUS_SESSION)

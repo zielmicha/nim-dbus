@@ -134,6 +134,9 @@ proc asDbusValue*(val: ObjectPath): DbusValue =
 proc asDbusValue*(val: Signature): DbusValue =
   DbusValue(kind: dtSignature, signatureValue: val)
 
+proc asDbusValue*(val: DbusValue): DbusValue =
+  val
+
 proc asDbusValue*[T](val: seq[T]): DbusValue =
   result = DbusValue(kind: dtArray, arrayValueType: getDbusType(T))
   for x in val:
@@ -149,7 +152,7 @@ proc asDbusValue*[K, V](val: Table[K, V]): DbusValue =
       createDictEntryDbusValue(asDbusValue(k), asDbusValue(v)))
 
 proc asDbusValue*[T](val: Variant[T]): DbusValue =
-  DbusValue(kind: dtVariant, variantType: getDbusType(T),
+  DbusValue(kind: dtVariant, variantType: getAnyDbusType(T),
             variantValue: asDbusValue(val.value))
 
 proc asNative*(value: DbusValue, native: typedesc[bool]): bool =
@@ -187,3 +190,9 @@ proc asNative*(value: DbusValue, native: typedesc[ObjectPath]): ObjectPath =
 
 proc asNative*(value: DbusValue, native: typedesc[Signature]): Signature =
   value.signatureValue
+
+proc add*(dict: DbusValue, key: DbusValue, value: DbusValue) =
+  doAssert dict.kind == dtArray
+  dict.arrayValue.add(
+    createDictEntryDbusValue(asDbusValue(key), asDbusValue(value)))
+  
