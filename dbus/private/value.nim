@@ -45,6 +45,50 @@ type
       else:
         discard
 
+proc `$`*(val: DbusValue): string =
+  result.add("<DbusValue " & $val.kind & " ")
+  case val.kind
+  of dtArray:
+    result.add($val.arrayValueType & " " & $val.arrayValue)
+  of dtBool:
+    result.add($val.boolValue)
+  of dtDictEntry:
+    result.add($val.dictKey & " " & $val.dictValue)
+  of dtDouble:
+    result.add($val.doubleValue)
+  of dtSignature:
+    result.add($cast[string](val.signatureValue))
+  of dtUnixFd:
+    result.add($val.fdValue)
+  of dtInt32:
+    result.add($val.int32Value)
+  of dtInt16:
+    result.add($val.int16Value)
+  of dtObjectPath:
+    result.add($cast[string](val.objectPathValue))
+  of dtUint16:
+    result.add($val.uint16Value)
+  of dtString:
+    result.add($val.stringValue)
+  of dtStruct:
+    result.add($val.structValues)
+  of dtUint64:
+    result.add($val.uint64Value)
+  of dtUint32:
+    discard
+    # result.add(system.$(val.uint32Value))
+  of dtInt64:
+    result.add($val.int64Value)
+  of dtByte:
+    result.add($val.byteValue)
+  of dtVariant:
+    result.add($val.variantType & " " & $val.variantValue)
+  of dtNull:
+    discard
+  of dtDict:
+    discard
+  result.add(">")
+
 type DbusNativePrimitive = bool | float64 | int32 | int16 | uint16 | uint64 | uint32 | int64 | uint8
 
 proc getPrimitive(val: var DbusValue): pointer =

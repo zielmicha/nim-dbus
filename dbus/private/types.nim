@@ -47,6 +47,21 @@ type DbusType* = ref object
   else:
     discard
 
+proc `$`*(t: DbusType): string =
+  result.add("<DbusType " & $t.kind & " ")
+  case t.kind
+  of dtArray:
+    result.add($t.itemType)
+  of dtDictEntry:
+    result.add($t.keyType & " " & $t.valueType)
+  of dtStruct:
+    result.add($t.itemTypes)
+  of dtVariant:
+    result.add($t.variantType)
+  else:
+    discard
+  result.add(">")
+
 converter fromScalar*(ch: DbusTypeChar): DbusType =
   # assert ch notin dbusContainerTypes
   DbusType(kind: ch)
