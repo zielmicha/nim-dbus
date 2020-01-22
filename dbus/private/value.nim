@@ -1,4 +1,5 @@
 import tables
+import sequtils
 
 type
   FD* = cint
@@ -137,8 +138,35 @@ proc asDbusValue*(val: Signature): DbusValue =
 proc asDbusValue*(val: DbusValue): DbusValue =
   val
 
+proc getDbusType*(val: DbusValue): DbusType =
+  case val.kind
+  of dbusScalarTypes:
+    return val.kind
+  of dbusStringTypes:
+    return val.kind
+  of dtArray:
+    return DbusType(kind: dtArray, itemType: val.arrayValueType)
+  of dtNull:
+    return dtNull
+  of dtDictEntry:
+    return DbusType(kind: dtDictEntry,
+                    keyType: getDbusType(val.dictKey),
+                    valueType: getDbusType(val.dictValue))
+  of dtUnixFd:
+    return dtUnixFd
+  of dtStruct:
+    return DbusType(kind: dtStruct,
+                    itemTypes: val.structValues.mapIt(getDbusType(it)))
+  of dtVariant:
+    return DbusType(kind: dtVariant, variantType: val.variantType)
+  of dtDict:
+    return val.kind
+
+proc getAnyDbusType*(val: DbusValue): DbusType =
+  getDbusType(val)
+
 proc asDbusValue*[T](val: seq[T]): DbusValue =
-  result = DbusValue(kind: dtArray, arrayValueType: getDbusType(T))
+  result = DbusValue(kind: dtArray, arrayValueType: getAnyDbusType(T))
   for x in val:
     result.arrayValue.add x.asDbusValue
 
@@ -150,6 +178,10 @@ proc asDbusValue*[K, V](val: Table[K, V]): DbusValue =
   for k, v in val:
     result.arrayValue.add(
       createDictEntryDbusValue(asDbusValue(k), asDbusValue(v)))
+
+proc asDbusValue*(val: Variant[DbusValue]): DbusValue =
+  DbusValue(kind: dtVariant, variantType: getDbusType(val.value),
+            variantValue: val.value)
 
 proc asDbusValue*[T](val: Variant[T]): DbusValue =
   DbusValue(kind: dtVariant, variantType: getAnyDbusType(T),

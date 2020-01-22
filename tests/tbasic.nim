@@ -122,6 +122,35 @@ test "tables mixed variant":
   assert val.arrayValue[1].dictKey.asNative(string) == "b"
   assert val.arrayValue[1].dictValue.asNative(uint32) == 12
 
+test "tables mixed variant":
+  # TODO: make a nicer syntax for this
+  var outer = DbusValue(
+    kind: dtArray,
+    arrayValueType: DbusType(
+      kind: dtDictEntry,
+      keyType: dtString,
+      valueType: dtVariant,
+    )
+  )
+  var inner = DbusValue(
+    kind: dtArray,
+    arrayValueType: DbusType(
+      kind: dtDictEntry,
+      keyType: dtString,
+      valueType: dtString,
+    )
+  )
+  outer.add("a".asDbusValue(), newVariant("foo").asDbusValue())
+  inner.add("c".asDbusValue(), "d".asDbusValue())
+  outer.add("b".asDbusValue(), newVariant(inner).asDbusValue())
+  let val = testEcho(outer)
+  assert val.kind == dtArray
+  assert val.arrayValue[0].dictKey.asNative(string) == "a"
+  assert val.arrayValue[0].dictValue.asNative(string) == "foo"
+  assert val.arrayValue[1].dictKey.asNative(string) == "b"
+  assert val.arrayValue[1].dictValue.arrayValue[0].dictKey.asNative(string) == "c"
+  assert val.arrayValue[1].dictValue.arrayValue[0].dictValue.asNative(string) == "d"
+
 test "notify":
   let bus = getBus(DBUS_BUS_SESSION)
   var msg = makeCall("org.freedesktop.Notifications",

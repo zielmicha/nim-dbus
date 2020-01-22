@@ -29,9 +29,9 @@ type DbusTypeChar* = enum
   dtByte = 'y'
   dtDict = '{'
 
-const dbusScalarTypes = {dtBool, dtDouble, dtInt32, dtInt16, dtUint16, dtUint64, dtUint32, dtInt64, dtByte}
-const dbusStringTypes = {dtString, dtObjectPath, dtSignature}
-const dbusContainerTypes = {dtArray, dtStruct, dtDict, dtDictEntry, dtVariant}
+const dbusScalarTypes* = {dtBool, dtDouble, dtInt32, dtInt16, dtUint16, dtUint64, dtUint32, dtInt64, dtByte}
+const dbusStringTypes* = {dtString, dtObjectPath, dtSignature}
+const dbusContainerTypes* = {dtArray, dtStruct, dtDict, dtDictEntry, dtVariant}
 
 type DbusType* = ref object
   case kind*: DbusTypeChar

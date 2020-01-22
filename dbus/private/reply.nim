@@ -61,7 +61,7 @@ proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue
   let kind = dbus_message_iter_get_arg_type(addr iter.iter).DbusTypeChar
   case kind:
   of dtNull:
-    raise newException(DbusException, "no argument")
+    return DbusValue(kind: dtNull)
   of dbusScalarTypes:
     let (value, scalarPtr) = createScalarDbusValue(kind)
     dbus_message_iter_get_basic(addr iter.iter, scalarPtr)
