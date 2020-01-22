@@ -61,7 +61,7 @@ proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue
   let kind = dbus_message_iter_get_arg_type(addr iter.iter).DbusTypeChar
   case kind:
   of dtNull:
-    raise newException(DbusException, "no argument")
+    return DbusValue(kind: dtNull)
   of dbusScalarTypes:
     let (value, scalarPtr) = createScalarDbusValue(kind)
     dbus_message_iter_get_basic(addr iter.iter, scalarPtr)
@@ -73,6 +73,13 @@ proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue
   of dtVariant:
     var subiter = iter.subIterate()
     return subiter.unpackCurrent(native)
+  of dtDictEntry:
+    var subiter = iter.subIterate()
+    let key = subiter.unpackCurrent(DbusValue)
+    subiter.advanceIter()
+    let val = subiter.unpackCurrent(DbusValue)
+    subiter.ensureEnd()
+    return DbusValue(kind: dtDictEntry, dictKey: key, dictValue: val)
   of dtArray:
     var subiter = iter.subIterate()
     var values:seq[DbusValue]
@@ -88,7 +95,6 @@ proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue
     var subiter = iter.subIterate()
     var values:seq[DbusValue]
     while true:
-      let subkind = dbus_message_iter_get_arg_type(addr subiter.iter).DbusTypeChar
       values.add(subiter.unpackCurrent(DbusValue))
       if dbus_message_iter_has_next(addr subiter.iter) == 0:
         break
