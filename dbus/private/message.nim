@@ -32,10 +32,10 @@ proc sendMessageWithReply*(bus: Bus, msg: Message): PendingCall =
 
 # Serialization
 
-proc append(iter: ptr DbusMessageIter, x: DbusValue)
-proc append[T](iter: ptr DbusMessageIter, x: T)
+proc append*(iter: ptr DbusMessageIter, x: DbusValue)
+proc append*[T](iter: ptr DbusMessageIter, x: T)
 
-proc initIter(msg: Message): DbusMessageIter =
+proc initIter*(msg: Message): DbusMessageIter =
   dbus_message_iter_init_append(msg.msg, addr result)
 
 proc appendPtr(iter: ptr DbusMessageIter, typecode: DbusType, data: pointer) =
@@ -85,7 +85,7 @@ proc appendStruct(iter: ptr DbusMessageIter, arr: openarray[DbusValue]) =
   if dbus_message_iter_close_container(iter, subIterPtr) == 0:
     raise newException(DbusException, "close_container")
 
-proc append(iter: ptr DbusMessageIter, x: DbusValue) =
+proc append*(iter: ptr DbusMessageIter, x: DbusValue) =
   var myX = x
   case x.kind:
     of dbusScalarTypes:
@@ -106,7 +106,7 @@ proc append(iter: ptr DbusMessageIter, x: DbusValue) =
       raise newException(ValueError, "not serializable")
 
 # anything convertible to DbusValue
-proc append[T](iter: ptr DbusMessageIter, x: T) =
+proc append*[T](iter: ptr DbusMessageIter, x: T) =
   iter.append(x.asDbusValue)
 
 proc append*[T](msg: Message, x: T) =
