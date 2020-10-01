@@ -72,7 +72,8 @@ proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue
     return createStringDbusValue(kind, $s)
   of dtVariant:
     var subiter = iter.subIterate()
-    return subiter.unpackCurrent(native)
+    let subvalue = subiter.unpackCurrent(native)
+    return DbusValue(kind: dtVariant, variantType: subvalue.kind, variantValue: subvalue)
   of dtDictEntry:
     var subiter = iter.subIterate()
     let key = subiter.unpackCurrent(DbusValue)
@@ -82,14 +83,21 @@ proc unpackCurrent*(iter: var InputIter, native: typedesc[DbusValue]): DbusValue
     return DbusValue(kind: dtDictEntry, dictKey: key, dictValue: val)
   of dtArray:
     var subiter = iter.subIterate()
-    var values:seq[DbusValue]
-    var subkind:DbusType
+    var values: seq[DbusValue]
+    var subkind: DbusType
     while true:
-      subkind = dbus_message_iter_get_arg_type(addr subiter.iter).DbusTypeChar
+      let subkindInt = dbus_message_iter_get_arg_type(addr subiter.iter)
+      subkind = subkindInt.DbusTypeChar
+      if subkind.kind == dtNull:
+        break
       values.add(subiter.unpackCurrent(native))
       if dbus_message_iter_has_next(addr subiter.iter) == 0:
         break
       subiter.advanceIter()
+    if values.len > 0 and subkind.kind == dtDictEntry:
+      # Hard to get these when there are no values in the current system
+      subkind.keyType = values[0].dictKey.kind
+      subkind.valueType = values[0].dictValue.kind
     return DbusValue(kind: dtArray, arrayValueType: subkind, arrayValue: values)
   of dtStruct:
     var subiter = iter.subIterate()

@@ -267,8 +267,16 @@ proc asNative*(value: DbusValue, native: typedesc[ObjectPath]): ObjectPath =
 proc asNative*(value: DbusValue, native: typedesc[Signature]): Signature =
   value.signatureValue
 
+proc asNative*[T](value: DbusValue, native: typedesc[seq[T]]): seq[T] =
+  for str in value.arrayValue:
+    result.add asNative(str, T)
+
+proc asNative*[T, K](value: DbusValue, native: typedesc[Table[T, K]]): Table[T, K] =
+  if value == nil: return
+  for kv in value.arrayValue:
+    result[asNative(kv.dictKey, T)] = asNative(kv.dictValue, K)
+
 proc add*(dict: DbusValue, key: DbusValue, value: DbusValue) =
   doAssert dict.kind == dtArray
   dict.arrayValue.add(
     createDictEntryDbusValue(asDbusValue(key), asDbusValue(value)))
-  
