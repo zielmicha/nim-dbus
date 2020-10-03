@@ -102,8 +102,7 @@ proc messageFunc(connection: ptr DBusConnection, message: ptr DBusMessage, user_
   elif rawType == DBUS_MESSAGE_TYPE_SIGNAL:
     kind = mtSignal
   else:
-    echo "unknown message ", rawType
-    return
+    raise newException(DbusException, "unknown message(" & $rawType & ")")
 
   let callback = cast[PackedMessageCallback](userData).callback
   let ok = callback(kind, IncomingMessage(msg: message))

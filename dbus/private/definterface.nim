@@ -18,11 +18,11 @@ proc addMethodRaw*[T](self: InterfaceDef[T], def: MethodDef, call: (proc(obj: T,
 proc makeCallback[T](bus: Bus, def: InterfaceDef[T], obj: T): MessageCallback =
   proc callback(kind: IncomingMessageType, incomingMessage: IncomingMessage): bool =
     if kind != mtCall:
-      echo "is a signal"
+      #echo "is a signal"
       return false
 
     if not def.funcs.hasKey(incomingMessage.name):
-      echo "no such method"
+      #echo "no such method"
       return false
 
     let callable = `[]`(def.funcs, incomingMessage.name).call
@@ -32,11 +32,10 @@ proc makeCallback[T](bus: Bus, def: InterfaceDef[T], obj: T): MessageCallback =
     try:
       let args = incomingMessage.unpackValueSeq()
       ret = callable(obj, args)
-    except Exception:
-      let exc = getCurrentException()
-      echo "Exception: ", exc.msg
-      echo getStackTrace(exc)
-      sendErrorReply(bus, incomingMessage, exc.msg)
+    except Exception as exc:
+      #echo "Exception: ", exc.msg
+      #echo getStackTrace(exc)
+      sendErrorReply(bus, incomingMessage, $exc.name & ": " & exc.msg)
       return
 
     sendReply(bus, incomingMessage, ret)

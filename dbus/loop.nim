@@ -10,13 +10,13 @@ type
 
 proc addWatch(watch: ptr DBusWatch, loopPtr: pointer): dbus_bool_t {.cdecl.} =
   let loop = cast[ptr MainLoop](loopPtr)
-  echo "addWatch ", dbus_watch_get_fd(watch)
+  #echo "addWatch ", dbus_watch_get_fd(watch)
   loop.watches.add watch
   return 1
 
 proc removeWatch(watch: ptr DBusWatch, loopPtr: pointer) {.cdecl.} =
   let loop = cast[ptr MainLoop](loopPtr)
-  echo "removeWatch"
+  #echo "removeWatch"
   loop.watches.del loop.watches.find(watch)
 
 proc toggleWatch(watch: ptr DBusWatch, loopPtr: pointer) {.cdecl.} =

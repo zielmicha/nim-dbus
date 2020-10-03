@@ -164,5 +164,3 @@ proc getAnyDbusType*[K, V](native: typedesc[Table[K, V]]): DbusType =
 
 proc getAnyDbusType*[K, V](native: typedesc[TableRef[K, V]]): DbusType =
   initArrayType(initDictEntryType(getAnyDbusType(K), getAnyDbusType(V)))
-
-

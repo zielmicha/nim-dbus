@@ -37,9 +37,6 @@ macro addMethod*(ifaceDef, funcName, inargs, outargs): untyped =
                                       newCall(newIdentNode("len"), newIdentNode("args")),
                                       newIntLitNode(inargs.len)))
 
-  dumpTree:
-    let a = 5
-
   let call = newCall(funcName, newIdentNode("obj"))
 
   for i in 0..<inargs.len:
