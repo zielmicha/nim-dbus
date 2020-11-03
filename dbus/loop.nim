@@ -1,23 +1,35 @@
 import dbus, dbus/lowlevel, tables, posix, os
 
+const maxWatches = 128
+
 type
   MainLoop* = object
     conn: ptr DbusConnection
-    watches: seq[ptr DbusWatch]
+    watchesCount: int
+    watches: array[maxWatches, ptr DbusWatch]
 
   PackedWatch = ref object of RootObj
     dbusWatch: ptr DbusWatch
 
-proc addWatch(watch: ptr DBusWatch, loopPtr: pointer): dbus_bool_t {.cdecl.} =
+proc addWatch(newWatch: ptr DBusWatch, loopPtr: pointer): dbus_bool_t {.cdecl.} =
   let loop = cast[ptr MainLoop](loopPtr)
   #echo "addWatch ", dbus_watch_get_fd(watch)
-  loop.watches.add watch
+  if loop.watchesCount == maxWatches:
+    raise newException(ValueError, "too many watches")
+  for watch in loop.watches.mitems:
+    if watch == nil:
+      watch = newWatch
+      break
+  inc loop.watchesCount
   return 1
 
-proc removeWatch(watch: ptr DBusWatch, loopPtr: pointer) {.cdecl.} =
+proc removeWatch(oldWatch: ptr DBusWatch, loopPtr: pointer) {.cdecl.} =
   let loop = cast[ptr MainLoop](loopPtr)
   #echo "removeWatch"
-  loop.watches.del loop.watches.find(watch)
+  for watch in loop.watches.mitems:
+    if watch == oldWatch:
+      watch = nil
+  dec loop.watchesCount
 
 proc toggleWatch(watch: ptr DBusWatch, loopPtr: pointer) {.cdecl.} =
   discard
@@ -26,9 +38,9 @@ proc freeLoop(loopPtr: pointer) {.cdecl.} =
   discard
 
 proc create*(cls: typedesc[MainLoop], bus: Bus): ptr MainLoop =
-  result = create(MainLoop)
+  result = createShared(MainLoop)
   result.conn = bus.conn
-  result.watches = @[]
+  #result.watches = @[]
   let ok = dbus_connection_set_watch_functions(result.conn,
                                                add_function=DBusAddWatchFunction(addWatch),
                                                remove_function=DBusRemoveWatchFunction(removeWatch),
@@ -39,19 +51,20 @@ proc create*(cls: typedesc[MainLoop], bus: Bus): ptr MainLoop =
   dbus_bus_add_match(result.conn, "type='signal'", nil)
   dbus_bus_add_match(result.conn, "type='method_call'", nil)
 
-const maxWatches = 128
+import sequtils
 
 proc tick*(self: ptr MainLoop) =
-  if self.watches.len >= maxWatches:
-    raise newException(ValueError, "too many watches")
-
-  var fds: array[maxWatches, TPollfd]
-  var activeWatches: seq[ptr DbusWatch] = @[]
-  var nfds: int = 0
+  var
+    fds: array[maxWatches, TPollfd]
+    activeWatches: seq[ptr DbusWatch] = @[]
+    nfds: int = 0
+    checkedWatches = 0
 
   for i, watch in self.watches:
-    if dbus_watch_get_enabled(watch) == 0:
-      continue
+    if checkedWatches == self.watchesCount: break
+    if watch.isNil: continue
+    inc checkedWatches
+    if dbus_watch_get_enabled(watch) == 0: continue
 
     var cond: int16 = POLLHUP or POLLERR
     let fd = dbus_watch_get_fd(watch)
