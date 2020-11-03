@@ -26,6 +26,7 @@ proc removeWatch(oldWatch: ptr DBusWatch, loopPtr: pointer) {.cdecl.} =
   for watch in loop.watches.mitems:
     if watch == oldWatch:
       watch = nil
+      break
   dec loop.watchesCount
 
 proc toggleWatch(watch: ptr DBusWatch, loopPtr: pointer) {.cdecl.} =
