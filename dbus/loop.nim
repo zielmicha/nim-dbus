@@ -1,4 +1,4 @@
-import dbus, dbus/lowlevel, tables, posix, os
+import dbus, dbus/lowlevel, posix, os
 
 const maxWatches = 128
 
@@ -7,9 +7,6 @@ type
     conn: ptr DbusConnection
     watchesCount: int
     watches: array[maxWatches, ptr DbusWatch]
-
-  PackedWatch = ref object of RootObj
-    dbusWatch: ptr DbusWatch
 
 proc addWatch(newWatch: ptr DBusWatch, loopPtr: pointer): dbus_bool_t {.cdecl.} =
   let loop = cast[ptr MainLoop](loopPtr)
@@ -38,9 +35,9 @@ proc freeLoop(loopPtr: pointer) {.cdecl.} =
   discard
 
 proc create*(cls: typedesc[MainLoop], bus: Bus): ptr MainLoop =
-  result = createShared(MainLoop)
+  ## This creates a new main loop, the returned pointer must be manually free'd
+  result = create(MainLoop)
   result.conn = bus.conn
-  #result.watches = @[]
   let ok = dbus_connection_set_watch_functions(result.conn,
                                                add_function=DBusAddWatchFunction(addWatch),
                                                remove_function=DBusRemoveWatchFunction(removeWatch),
@@ -50,8 +47,6 @@ proc create*(cls: typedesc[MainLoop], bus: Bus): ptr MainLoop =
   assert ok != 0
   dbus_bus_add_match(result.conn, "type='signal'", nil)
   dbus_bus_add_match(result.conn, "type='method_call'", nil)
-
-import sequtils
 
 proc tick*(self: ptr MainLoop) =
   var
