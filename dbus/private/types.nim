@@ -113,6 +113,11 @@ proc makeDbusSignature*(kind: DbusType): string =
       result = "a" & makeDbusSignature(kind.itemType)
     of dtDictEntry:
       result = "{" & makeDbusSignature(kind.keyType) & makeDbusSignature(kind.valueType) & "}"
+    of dtStruct:
+      result = "("
+      for t in kind.itemTypes:
+        result.add makeDbusSignature(t)
+      result.add ")"
     else:
       result = $(kind.kind.char)
 
