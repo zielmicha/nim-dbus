@@ -10,12 +10,12 @@ class MyDBUSService(dbus.service.Object):
 
     @dbus.service.method('com.zielmicha.test')
     def hello(self, *args, **kwargs):
-        print 'hello world {} {}'.format(args, kwargs)
+        print( 'hello world {} {}'.format(args, kwargs) )
         return ("Hello, world!", args[0] if args else 1)
 
     @dbus.service.signal('com.zielmicha.testsignal')
     def hello_sig(self):
-        print 'hello world sig'
+        print( 'hello world sig' )
 
 DBusGMainLoop(set_as_default=True)
 myservice = MyDBUSService()
