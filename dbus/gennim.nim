@@ -54,7 +54,7 @@ proc quotePath(name: string): string =
   let base = name.replace('/', '_').replace('.', '_').replace("__", "")
   var ret: seq[string] = @[]
   for segment in base.split('_'):
-    ret.add segment.capitalize
+    ret.add segment.capitalizeAscii
   ret.join("")
 
 proc ifaceTypeName(name: string): string =
