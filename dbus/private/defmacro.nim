@@ -4,7 +4,7 @@ proc generateArgsDesc(args: NimNode): NimNode {.compileTime.} =
   let body = newNimNode(nnkBracket)
   assert args.kind == nnkBracket
   for arg in args.children:
-    assert arg.kind == nnkPar
+    assert arg.kind in [nnkPar, nnkTupleConstr]
     assert arg.len == 2
     let argName = arg[0]
     let argType = arg[1]
