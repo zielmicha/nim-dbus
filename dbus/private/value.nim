@@ -5,59 +5,59 @@ type
   FD* = cint
 
   DbusValue* = ref object
-    case kind*: DbusTypeChar:
-      of dtArray:
-        arrayValueType*: DbusType
-        arrayValue*: seq[DbusValue]
-      of dtBool:
-        boolValue*: bool
-      of dtDictEntry:
-        dictKey*, dictValue*: DbusValue
-      of dtDouble:
-        doubleValue*: float64
-      of dtSignature:
-        signatureValue*: Signature
-      of dtUnixFd:
-        fdValue*: FD
-      of dtInt32:
-        int32Value*: int32
-      of dtInt16:
-        int16Value*: int16
-      of dtObjectPath:
-        objectPathValue*: ObjectPath
-      of dtUint16:
-        uint16Value*: uint16
-      of dtString:
-        stringValue*: string
-      of dtStruct:
-        structValues*: seq[DbusValue]
-      of dtUint64:
-        uint64Value*: uint64
-      of dtUint32:
-        uint32Value*: uint32
-      of dtInt64:
-        int64Value*: int64
-      of dtByte:
-        byteValue*: uint8
-      of dtVariant:
-        variantType*: DbusType
-        variantValue*: DbusValue
-      else:
-        discard
+    case kind*: DbusTypeChar
+    of dtArray:
+      arrayValueType*: DbusType
+      arrayValue*: seq[DbusValue]
+    of dtBool:
+      boolValue*: bool
+    of dtDictEntry:
+      dictKey*, dictValue*: DbusValue
+    of dtDouble:
+      doubleValue*: float64
+    of dtSignature:
+      signatureValue*: Signature
+    of dtUnixFd:
+      fdValue*: FD
+    of dtInt32:
+      int32Value*: int32
+    of dtInt16:
+      int16Value*: int16
+    of dtObjectPath:
+      objectPathValue*: ObjectPath
+    of dtUint16:
+      uint16Value*: uint16
+    of dtString:
+      stringValue*: string
+    of dtStruct:
+      structValues*: seq[DbusValue]
+    of dtUint64:
+      uint64Value*: uint64
+    of dtUint32:
+      uint32Value*: uint32
+    of dtInt64:
+      int64Value*: int64
+    of dtByte:
+      byteValue*: uint8
+    of dtVariant:
+      variantType*: DbusType
+      variantValue*: DbusValue
+    else:
+      discard
 
 proc `$`*(val: DbusValue): string =
   result.add("<DbusValue " & $val.kind & " ")
   case val.kind
   of dtArray:
-    result.add($val.arrayValueType & " " & $val.arrayValue)
+    result.add($val.arrayValueType & ' ' & $val.arrayValue)
   of dtBool:
     result.add($val.boolValue)
   of dtDictEntry:
-    result.add($val.dictKey & " " & $val.dictValue)
+    result.add($val.dictKey & ' ' & $val.dictValue)
   of dtDouble:
     result.add($val.doubleValue)
   of dtSignature:
-    result.add($cast[string](val.signatureValue))
+    result.add(val.signatureValue.string)
   of dtUnixFd:
     result.add($val.fdValue)
   of dtInt32:
@@ -65,65 +65,62 @@ proc `$`*(val: DbusValue): string =
   of dtInt16:
     result.add($val.int16Value)
   of dtObjectPath:
-    result.add($cast[string](val.objectPathValue))
+    result.add(val.objectPathValue.string)
   of dtUint16:
     result.add($val.uint16Value)
   of dtString:
-    result.add($val.stringValue)
+    result.add(val.stringValue)
   of dtStruct:
     result.add($val.structValues)
   of dtUint64:
     result.add($val.uint64Value)
   of dtUint32:
-    discard
-    # result.add(system.$(val.uint32Value))
+    result.add($val.uint32Value.uint64)
   of dtInt64:
     result.add($val.int64Value)
   of dtByte:
     result.add($val.byteValue)
   of dtVariant:
-    result.add($val.variantType & " " & $val.variantValue)
+    result.add($val.variantType & ' ' & $val.variantValue)
   of dtNull:
     discard
   of dtDict:
     discard
-  result.add(">")
+  result.add('>')
 
 type DbusNativePrimitive = bool | float64 | int32 | int16 | uint16 | uint64 | uint32 | int64 | uint8
 
-proc getPrimitive(val: var DbusValue): pointer =
-  case val.kind:
-    of dtBool:
-      return addr val.boolValue
-    of dtDouble:
-      return addr val.doubleValue
-    of dtInt32:
-      return addr val.int32Value
-    of dtInt16:
-      return addr val.int16Value
-    of dtUint16:
-      return addr val.uint16Value
-    of dtUint64:
-      return addr val.uint64Value
-    of dtUint32:
-      return addr val.uint32Value
-    of dtInt64:
-      return addr val.int64Value
-    of dtByte:
-      return addr val.byteValue
-    else:
-      raise newException(ValueError, "value is not primitive")
+proc getPrimitive(val: DbusValue): pointer =
+  case val.kind
+  of dtDouble:
+    return addr val.doubleValue
+  of dtInt32:
+    return addr val.int32Value
+  of dtInt16:
+    return addr val.int16Value
+  of dtUint16:
+    return addr val.uint16Value
+  of dtUint64:
+    return addr val.uint64Value
+  of dtUint32:
+    return addr val.uint32Value
+  of dtInt64:
+    return addr val.int64Value
+  of dtByte:
+    return addr val.byteValue
+  else:
+    raise newException(ValueError, "value is not primitive")
 
 proc getString(val: DbusValue): var string =
-  case val.kind:
-    of dtString:
-      return val.stringValue
-    of dtSignature:
-      return val.signatureValue.string
-    of dtObjectPath:
-      return val.objectPathValue.string
-    else:
-      raise newException(ValueError, "value is not string")
+  case val.kind
+  of dtString:
+    return val.stringValue
+  of dtSignature:
+    return val.signatureValue.string
+  of dtObjectPath:
+    return val.objectPathValue.string
+  else:
+    raise newException(ValueError, "value is not string")
 
 proc createStringDbusValue(kind: DbusTypeChar, val: string): DbusValue =
   case kind

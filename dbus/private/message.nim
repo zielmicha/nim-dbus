@@ -42,10 +42,6 @@ proc appendPtr(iter: ptr DbusMessageIter, typecode: DbusType, data: pointer) =
   if dbus_message_iter_append_basic(iter, typecode.kind.char.cint, data) == 0:
       raise newException(DbusException, "append_basic")
 
-proc appendPrimitive[T](iter: ptr DbusMessageIter, kind: DbusType, x: T) =
-  var y: T = x
-  iter.appendPtr(kind, addr y)
-
 proc appendArray(iter: ptr DbusMessageIter, sig: string, arr: openarray[DbusValue]) =
   var subIter: DBusMessageIter
   var subIterPtr = addr subIter
@@ -86,10 +82,12 @@ proc appendStruct(iter: ptr DbusMessageIter, arr: openarray[DbusValue]) =
     raise newException(DbusException, "close_container")
 
 proc append*(iter: ptr DbusMessageIter, x: DbusValue) =
-  var myX = x
   case x.kind:
-    of dbusScalarTypes:
-      iter.appendPtr(x.kind, myX.getPrimitive)
+    of dtBool:
+      let val = x.boolValue.uint32
+      iter.appendPtr(x.kind, addr val)
+    of dbusScalarTypes - {dtBool}:
+      iter.appendPtr(x.kind, x.getPrimitive)
     of dbusStringTypes:
       # dbus_message_iter_append_basic copies its argument, so this is safe
       var str = x.getString.cstring
