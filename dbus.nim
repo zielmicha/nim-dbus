@@ -1,4 +1,3 @@
-{.passl: "-ldbus-1".}
 import dbus/lowlevel
 
 include dbus/private/bus
