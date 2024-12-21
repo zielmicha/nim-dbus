@@ -71,8 +71,8 @@ test "arrays":
 
 test "variant":
   let val = testEcho(newVariant("hi"))
-  assert val.kind == dtString
-  assert val.asNative(string) == "hi"
+  assert val.variantType.kind == dtString
+  assert val.variantValue.asNative(string) == "hi"
 
 test "struct":
   let val = testEcho(DbusValue(kind: dtStruct, structValues: @[
@@ -99,8 +99,8 @@ test "tables nested":
   }.toTable())
   assert val.kind == dtArray
   assert val.arrayValue[0].dictKey.asNative(string) == "a"
-  assert val.arrayValue[0].dictValue.arrayValue[0].dictKey.asNative(string) == "c"
-  assert val.arrayValue[0].dictValue.arrayValue[0].dictValue.asNative(string) == "d"
+  assert val.arrayValue[0].dictValue.variantValue.arrayValue[0].dictKey.asNative(string) == "c"
+  assert val.arrayValue[0].dictValue.variantValue.arrayValue[0].dictValue.asNative(string) == "d"
 
 test "tables mixed variant":
   let var1 = newVariant("foo").asDbusValue()
@@ -118,9 +118,9 @@ test "tables mixed variant":
   let val = testEcho(dict)
   assert val.kind == dtArray
   assert val.arrayValue[0].dictKey.asNative(string) == "a"
-  assert val.arrayValue[0].dictValue.asNative(string) == "foo"
+  assert val.arrayValue[0].dictValue.variantValue.asNative(string) == "foo"
   assert val.arrayValue[1].dictKey.asNative(string) == "b"
-  assert val.arrayValue[1].dictValue.asNative(uint32) == 12
+  assert val.arrayValue[1].dictValue.variantValue.asNative(uint32) == 12
 
 test "tables mixed variant":
   # TODO: make a nicer syntax for this
@@ -146,10 +146,10 @@ test "tables mixed variant":
   let val = testEcho(outer)
   assert val.kind == dtArray
   assert val.arrayValue[0].dictKey.asNative(string) == "a"
-  assert val.arrayValue[0].dictValue.asNative(string) == "foo"
+  assert val.arrayValue[0].dictValue.variantValue.asNative(string) == "foo"
   assert val.arrayValue[1].dictKey.asNative(string) == "b"
-  assert val.arrayValue[1].dictValue.arrayValue[0].dictKey.asNative(string) == "c"
-  assert val.arrayValue[1].dictValue.arrayValue[0].dictValue.asNative(string) == "d"
+  assert val.arrayValue[1].dictValue.variantValue.arrayValue[0].dictKey.asNative(string) == "c"
+  assert val.arrayValue[1].dictValue.variantValue.arrayValue[0].dictValue.asNative(string) == "d"
 
 test "notify":
   let bus = getBus(DBUS_BUS_SESSION)
